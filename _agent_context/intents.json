@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "flows": [
+    {
+      "path": "/intents/interaktion-aktivieren",
+      "label": "Interaktion aktiv setzen",
+      "description": "Interaktion aktiv setzen und QR-Code bildschirmfüllend öffnen",
+      "file": "src/pages/intents/InteraktionAktivierenPage.tsx",
+      "summary": "/**\n * Interaktion aktivieren — 3-Schritt-Wizard mit QR-Code-Ansicht im eigenen Tab.\n * Steps: 1) Veranstaltung wählen → 2) Interaktion der Veranstaltung wählen → 3) Aktiv setzen (Prüfen) →\n *        danach öffnet sich die QR-Code-Ansicht bildschirmfüllend in einem eigenen Tab.\n * Reads: veranstaltungen, interaktionen. Writes: interaktionen (aktiv, per useInteraktionAktivierenFlow).\n * Composes: IntentWizardShell, EntitySelectStep, StepNav, SummaryStep, SuccessStep.\n */",
+      "components": [
+        "EntitySelectStep",
+        "IntentWizardShell",
+        "StepNav",
+        "SuccessStep",
+        "SummaryStep",
+        "WizardStep"
+      ],
+      "writes": []
+    },
+    {
+      "path": "/intents/feedbacks-zusammenfassen",
+      "label": "Feedbacks zusammenfassen",
+      "description": "Feedbacks einer Interaktion zu einem Text zusammenführen und in eigenem Tab öffnen",
+      "file": "src/pages/intents/FeedbacksZusammenfassenPage.tsx",
+      "summary": "/**\n * Feedbacks zusammenfassen — 2-Schritt-Wizard.\n * Steps: 1) Interaktion wählen → 2) Prüfen & zusammenfassen (Vorprompt, Feedbacks mit Kürzel, Endprompt werden zu einem Text).\n * Reads: interaktionen, feedbacks. Writes: zusammenfassungen (createZusammenfassungenEntry via Flow-Hook).\n * Composes: IntentWizardShell, EntitySelectStep, SummaryStep, SuccessStep.\n */",
+      "components": [
+        "EntitySelectStep",
+        "IntentWizardShell",
+        "StepNav",
+        "SuccessStep",
+        "SummaryStep",
+        "WizardStep"
+      ],
+      "writes": []
+    },
+    {
+      "path": "/intents/ki-antwort-eintragen",
+      "label": "KI-Antwort eintragen",
+      "description": "Antwort des Chatbots bei einer Zusammenfassung eintragen",
+      "file": "src/pages/intents/KiAntwortEintragenPage.tsx",
+      "summary": "/**\n * KI-Antwort eintragen — 3-Schritt-Wizard.\n * Steps: 1) Zusammenfassung wählen → 2) Antwort der KI einfügen → 3) Prüfen & speichern.\n * Reads: zusammenfassungen. Writes: zusammenfassungen.ki_antwort (update of the picked record).\n * Composes: IntentWizardShell, EntitySelectStep, Bound, StepNav, SummaryStep, SuccessStep.\n */",
+      "components": [
+        "Bound",
+        "EntitySelectStep",
+        "IntentWizardShell",
+        "StepNav",
+        "SuccessStep",
+        "SummaryStep",
+        "WizardStep"
+      ],
+      "writes": []
+    }
+  ],
+  "unregistered_pages": []
+}

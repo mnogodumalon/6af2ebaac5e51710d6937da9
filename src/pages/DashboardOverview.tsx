@@ -249,21 +249,12 @@ export default function DashboardOverview({ data }: { data: DashboardData }) {
                             <span className="truncate">{isActive ? tx('QR-Code zeigen') : tx('Aktiv setzen & QR-Code')}</span>
                           </Button>
                         )}
-                        {latestSummary.get(i.record_id) ? (
+                        {(latestSummary.get(i.record_id) || crud.zusammenfassungen.canWrite) && (
                           <Button asChild className="h-12 min-w-0 flex-1 sm:flex-none" variant="secondary">
-                            <a href={`#/ansicht/zusammenfassung?record=${latestSummary.get(i.record_id)}`} target="_blank" rel="noopener">
+                            <a href={`#/ansicht/zusammenfassung?interaktion=${encodeURIComponent(i.record_id)}`} target="_blank" rel="noopener">
                               <IconSparkles size={18} className="shrink-0" />
-                              <span className="truncate">{tx('Zusammenfassung öffnen')}</span>
+                              <span className="truncate">{latestSummary.get(i.record_id) ? tx('Zusammenfassung öffnen') : tx('Zusammenfassen')}</span>
                             </a>
-                          </Button>
-                        ) : crud.zusammenfassungen.canWrite && (
-                          <Button className="h-12 min-w-0 flex-1 sm:flex-none" variant="secondary" onClick={() => crud.zusammenfassungen.openCreate({
-                            interaktion: i.record_id,
-                            zeitpunkt: format(clock, "yyyy-MM-dd'T'HH:mm"),
-                            zusammenfassung_text: composeFor(i),
-                          })}>
-                            <IconSparkles size={18} className="shrink-0" />
-                            <span className="truncate">{tx('Zusammenfassen')}</span>
                           </Button>
                         )}
                       </div>

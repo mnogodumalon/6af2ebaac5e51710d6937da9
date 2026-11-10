@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "pages": [
+    {
+      "slug": "feedback",
+      "type": "custom",
+      "entity": "feedbacks",
+      "title": "Feedback",
+      "published": false,
+      "fields": [
+        "interaktion",
+        "kuerzel",
+        "feedback_text",
+        "absende_kennung"
+      ],
+      "policy": null
+    },
+    {
+      "slug": "abschlussbewertung",
+      "type": "custom",
+      "entity": "abschlussbewertungen",
+      "title": "Abschlussbewertung",
+      "published": false,
+      "fields": [
+        "veranstaltung",
+        "kuerzel",
+        "besonders_toll",
+        "verbesserung",
+        "referenzstatement",
+        "email",
+        "einwilligung"
+      ],
+      "policy": null
+    }
+  ]
+}
