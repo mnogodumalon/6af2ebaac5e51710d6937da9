@@ -1,0 +1,24 @@
+Ziel: Wir moderieren Veranstaltungen und lassen darin die Teilnehmenden gemeinsam mit KI denken.
+
+Ablauf: Ich bereite Interaktionen vor; sie sind die Schritte meines Ablaufs in fester Reihenfolge, und jede hat eine Frage, eine optionale Erläuterung, einen Vorprompt und einen Endprompt.
+
+Zu einer Veranstaltung ist immer genau eine Interaktion aktiv.
+
+Bei jeder Interaktion setzt ein Klick sie aktiv und öffnet den QR-Code zum Feedback-Formular bildschirmfüllend in einem eigenen Browsertab.
+Teilnehmende scannen den QR-Code und sehen ohne Anmeldung nur ein ganz einfaches Formular der gerade aktiven Interaktion mit Frage und Erläuterung; jeder kann beliebig viele Feedbacks geben.
+
+Beim ersten Feedback bekommt jedes Handy still ein fünfstelliges Kürzel, merkt es sich für den ganzen Abend, hinterlegt es bei jedem Feedback in den Daten und zeigt es nach jedem Absenden; ein Feedback darf nie doppelt ankommen.
+
+Bei jeder Interaktion führt ein Klick auf Zusammenfassen alle ihre Feedbacks in ein großes Textfeld zusammen und öffnet es sofort bildschirmfüllend in einem eigenen Tab: darüber die Frage und Erläuterung, im Feld stehen dann als erstes der Vorprompt, dann die Feedbacks der Reihe nach mit dem Kürzel, als letztes der Endprompt.
+
+Das Textfeld gehe ich mit den Teilnehmenden durch und ändere es beliebig; es bleibt bei der Zusammenfassung gespeichert, und ich kann das Zusammenfassen beliebig oft wiederholen. 
+
+Den Text kopiere ich mit einem Klick und gebe ihn selbst in einen Chatbot; die Antwort der KI füge ich gleich oder später bei der Interaktion in ein eigenes Feld ein.
+
+Alle Zusammenfassungen bleiben mit ihren Antworten und dem Kürzel sowie der Zuordnung zur Interaktion gespeichert.
+
+Bewertung/Referenz am Ende: Am Ende des Abends beschreibt jeder Teilnehmende was besonders toll war und was verbessert werden kann. Am Besten formuliert er ein Referenzstatement. Dabei kann jeder Teilnehmende freiwillig seine E-Mail-Adresse mit Einwilligung zu seinem Kürzel hinterlegen, damit ich ihm später eine persönliche Auswertung schicken kann. Die E-Mail-Adresse wird mit dem intern vergebenen Kürzel verknüpft.
+
+Konkrete Handhabung: Ich steuere alles als Moderator auch vom Smartphone aus; die Teilnehmenden sehen meine Ansicht nicht.
+
+Veranstaltungen und Interaktionen lege ich selbst an; eine besondere Moderationsansicht brauche ich nicht.

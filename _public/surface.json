@@ -1,0 +1,82 @@
+{
+  "version": 1,
+  "pages": [
+    {
+      "slug": "feedback",
+      "component": "Feedback",
+      "title": "Feedback",
+      "link_param": {
+        "name": "veranstaltung",
+        "entity": "veranstaltungen",
+        "label_field": "titel"
+      },
+      "endpoints": [
+        {
+          "entity": "veranstaltungen",
+          "op": "list",
+          "fields": [
+            "titel"
+          ],
+          "max_records": 500
+        },
+        {
+          "entity": "interaktionen",
+          "op": "list",
+          "fields": [
+            "veranstaltung",
+            "frage",
+            "erlaeuterung"
+          ],
+          "scope": "r.v_aktiv == True",
+          "scope_description": "zeigt nur Interaktionen mit aktiv = ja",
+          "max_records": 500
+        },
+        {
+          "entity": "feedbacks",
+          "op": "create",
+          "fields": [
+            "interaktion",
+            "kuerzel",
+            "feedback_text",
+            "absende_kennung"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "abschlussbewertung",
+      "component": "Abschlussbewertung",
+      "title": "Abschlussbewertung",
+      "link_param": {
+        "name": "veranstaltung",
+        "entity": "veranstaltungen",
+        "label_field": "titel",
+        "secondary_field": "datum"
+      },
+      "endpoints": [
+        {
+          "entity": "veranstaltungen",
+          "op": "list",
+          "fields": [
+            "titel",
+            "datum"
+          ],
+          "max_records": 500
+        },
+        {
+          "entity": "abschlussbewertungen",
+          "op": "create",
+          "fields": [
+            "veranstaltung",
+            "kuerzel",
+            "besonders_toll",
+            "verbesserung",
+            "referenzstatement",
+            "email",
+            "einwilligung"
+          ]
+        }
+      ]
+    }
+  ]
+}
