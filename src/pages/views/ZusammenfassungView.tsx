@@ -13,7 +13,7 @@ import { LivingAppsService, extractRecordId, createRecordUrl } from '@/services/
 import { APP_IDS } from '@/types/app';
 import { ViewTextEditor } from '@/components/blocks/ViewTextEditor';
 
-const TEXT = { fontSize: 'clamp(1.5rem, 2.8vh, 3rem)' } as const;
+const TEXT = { fontSize: 'clamp(1.5rem, 3vh, 3.25rem)' } as const;
 
 export default function ZusammenfassungView() {
   const params = new URLSearchParams(window.location.hash.split('?')[1] ?? '');
@@ -65,20 +65,21 @@ export default function ZusammenfassungView() {
     ? tx('Die Daten konnten nicht geladen werden — es wird nichts zusammengeführt oder gespeichert.') : null;
 
   return (
-    <main className="min-h-dvh space-y-6 bg-background p-6 text-foreground sm:p-10">
+    <main className="h-dvh overflow-y-auto bg-background text-foreground">
+      <div className="flex h-dvh flex-col gap-[2vh] px-[4vw] py-[4vh]">
       {!pinned && !pinnedInteraktion && <p data-view-no-record style={TEXT}>{tx('Bitte über die Übersicht öffnen — diese Ansicht zeigt einen bestimmten Datensatz.')}</p>}
       {interaktion && (
-        <header className="space-y-2">
-          <h1 className="font-semibold" style={{ fontSize: 'clamp(2rem, 4.5vh, 4.5rem)' }}>{interaktion.fields.frage}</h1>
+        <header className="space-y-3 border-b-4 border-primary pb-[2vh]">
+          <h1 className="font-bold leading-tight" style={{ fontSize: 'clamp(1.5rem, 3.5vh, 3.5rem)' }}>{interaktion.fields.frage}</h1>
           {interaktion.fields.erlaeuterung && (
             <p className="whitespace-pre-line text-muted-foreground" style={TEXT}>{interaktion.fields.erlaeuterung}</p>
           )}
         </header>
       )}
       {edit && (
-        <div className="space-y-8">
-          <section className="min-w-0 space-y-2">
-            <h2 className="font-medium" style={TEXT}>{tx('Text für den Chatbot')}</h2>
+        <div className="flex min-h-0 flex-1 flex-col">
+          <section className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 [&>[data-view-edit]]:min-h-0 [&>[data-view-edit]]:flex-1 [&>[data-view-edit]]:shrink [&_textarea]:min-h-0 [&_textarea]:flex-1 [&_textarea]:resize-none">
+            <h2 className="font-semibold uppercase tracking-wide text-primary" style={TEXT}>{tx('Text für den Chatbot')}</h2>
             <ViewTextEditor
               field="zusammenfassung_text"
               recordId={edit.record_id}
@@ -89,11 +90,17 @@ export default function ZusammenfassungView() {
               }}
               compose={composeText}
               blocked={blocked}
-              minHeight="40vh"
+              minHeight="0"
+              style={{ fontSize: 'clamp(1.5rem, 3.4vh, 3.5rem)' }}
             />
           </section>
-          <section className="min-w-0 space-y-2">
-            <h2 className="font-medium" style={TEXT}>{tx('Antwort der KI')}</h2>
+        </div>
+      )}
+      </div>
+      {edit && (
+        <div className="px-[4vw] pb-[4vh]">
+          <section className="flex min-w-0 flex-col gap-3 [&_textarea]:resize-none">
+            <h2 className="font-semibold uppercase tracking-wide text-primary" style={TEXT}>{tx('Antwort der KI')}</h2>
             <ViewTextEditor
               field="ki_antwort"
               recordId={edit.record_id}
@@ -103,7 +110,7 @@ export default function ZusammenfassungView() {
                 zusammenfassungen.apply(edit.record_id, { ki_antwort: text });
               }}
               blocked={blocked}
-              minHeight="30vh"
+              minHeight="50vh"
             />
           </section>
         </div>
