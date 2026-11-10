@@ -18,6 +18,8 @@ const IntentFields = lazy(() => import('@/pages/IntentFields'));
 const IntentsAdmin = lazy(() => import('@/pages/IntentsAdmin'));
 const AppMap = lazy(() => import('@/pages/AppMap'));
 // <custom:imports>
+const ZusammenfassungView = lazy(() => import('@/pages/views/ZusammenfassungView'));
+const QrCodeView = lazy(() => import('@/pages/views/QrCodeView'));
 import { DashboardSkeleton } from '@/components/DashboardStates';
 const IntentInteraktionAktivierenPage = lazy(() => import('@/pages/intents/InteraktionAktivierenPage'));
 const IntentFeedbacksZusammenfassenPage = lazy(() => import('@/pages/intents/FeedbacksZusammenfassenPage'));
@@ -90,6 +92,8 @@ export default function App() {
                   the app (locale, error boundary, Sentry). Wired by
                   `node scripts/wire-intent.mjs --bare`, kept across updates (S-2). */}
               {/* <custom:bare-routes> */}
+              <Route path="ansicht/zusammenfassung" element={<Suspense fallback={null}><ZusammenfassungView /></Suspense>} />
+              <Route path="ansicht/qr-code" element={<Suspense fallback={null}><QrCodeView /></Suspense>} />
               {/* </custom:bare-routes> */}
               <Route element={<Suspense fallback={null}><Layout /></Suspense>}>
                 <Route index element={<DashboardReady />} />
