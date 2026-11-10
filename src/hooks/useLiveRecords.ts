@@ -28,7 +28,7 @@
  *   useLiveRecord('buchungen', id)   // ONE record the same way (null while unknown)
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { Veranstaltungen, Interaktionen, Feedbacks, Zusammenfassungen, Abschlussbewertungen } from '@/types/app';
+import type { Zusammenfassungen, Veranstaltungen, Interaktionen, Feedbacks, Abschlussbewertungen } from '@/types/app';
 import { LivingAppsService, type RecordQuery } from '@/services/livingAppsService';
 import { Sentry } from '@/lib/sentry';
 
@@ -50,23 +50,23 @@ function reportLiveError(entity: string, query: string, err: Error): void {
   } catch { /* reporting never breaks the view */ }
 }
 
-export type LiveEntity = 'veranstaltungen' | 'interaktionen' | 'feedbacks' | 'zusammenfassungen' | 'abschlussbewertungen';
+export type LiveEntity = 'zusammenfassungen' | 'veranstaltungen' | 'interaktionen' | 'feedbacks' | 'abschlussbewertungen';
 
 /** The row type of an entity — the same types useDashboardData hands out. */
 export type LiveRow<E extends LiveEntity> =
+  E extends 'zusammenfassungen' ? Zusammenfassungen :
   E extends 'veranstaltungen' ? Veranstaltungen :
   E extends 'interaktionen' ? Interaktionen :
   E extends 'feedbacks' ? Feedbacks :
-  E extends 'zusammenfassungen' ? Zusammenfassungen :
   E extends 'abschlussbewertungen' ? Abschlussbewertungen :
   never;
 
 type Loader = (q: RecordQuery) => Promise<{ record_id: string; fields: Record<string, unknown>; updatedat?: string | null }[]>;
 const LOADERS: Record<LiveEntity, Loader> = {
+  'zusammenfassungen': q => LivingAppsService.queryZusammenfassungen(q) as unknown as ReturnType<Loader>,
   'veranstaltungen': q => LivingAppsService.queryVeranstaltungen(q) as unknown as ReturnType<Loader>,
   'interaktionen': q => LivingAppsService.queryInteraktionen(q) as unknown as ReturnType<Loader>,
   'feedbacks': q => LivingAppsService.queryFeedbacks(q) as unknown as ReturnType<Loader>,
-  'zusammenfassungen': q => LivingAppsService.queryZusammenfassungen(q) as unknown as ReturnType<Loader>,
   'abschlussbewertungen': q => LivingAppsService.queryAbschlussbewertungen(q) as unknown as ReturnType<Loader>,
 };
 

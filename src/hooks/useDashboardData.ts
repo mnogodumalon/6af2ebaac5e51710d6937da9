@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import type { Veranstaltungen, Interaktionen, Feedbacks, Zusammenfassungen, Abschlussbewertungen } from '@/types/app';
+import type { Zusammenfassungen, Veranstaltungen, Interaktionen, Feedbacks, Abschlussbewertungen } from '@/types/app';
 import { LivingAppsService } from '@/services/livingAppsService';
 import { t } from '@/i18n';
 
@@ -14,12 +14,12 @@ import { t } from '@/i18n';
  *  There is no other mechanism (no `__optimistic`, no `mutate`).
  */
 /** Entities this hook can load — the same keys the journey layer uses. */
-export type DashboardEntity = 'veranstaltungen' | 'interaktionen' | 'feedbacks' | 'zusammenfassungen' | 'abschlussbewertungen';
+export type DashboardEntity = 'zusammenfassungen' | 'veranstaltungen' | 'interaktionen' | 'feedbacks' | 'abschlussbewertungen';
 
 /** Silent re-read interval from the plan (generated): visitors or tools add records. */
-const LIVE_MS = 15000;
+const LIVE_MS = 0;
 /** The lists a tick re-reads — ONE request each; the rest waits for an event or the tab's return. */
-const LIVE_ENTITIES: string[] = ["feedbacks", "abschlussbewertungen", "interaktionen"];
+const LIVE_ENTITIES: string[] = [];
 /** Marks a list the tick skipped: its rows and its forbidden state stay as they are. */
 const SKIP = Symbol('skip');
 
@@ -35,10 +35,10 @@ export function useDashboardData(options: DashboardDataOptions = {}) {
   // A string key, not the array: an inline `omit={['gaeste']}` is a new array
   // on every render and would restart the fetch forever.
   const omitKey = (options.omit ?? []).slice().sort().join('|');
+  const [zusammenfassungen, setZusammenfassungen] = useState<Zusammenfassungen[]>([]);
   const [veranstaltungen, setVeranstaltungen] = useState<Veranstaltungen[]>([]);
   const [interaktionen, setInteraktionen] = useState<Interaktionen[]>([]);
   const [feedbacks, setFeedbacks] = useState<Feedbacks[]>([]);
-  const [zusammenfassungen, setZusammenfassungen] = useState<Zusammenfassungen[]>([]);
   const [abschlussbewertungen, setAbschlussbewertungen] = useState<Abschlussbewertungen[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -61,10 +61,10 @@ export function useDashboardData(options: DashboardDataOptions = {}) {
       failure = failure ?? s.reason;
       return null;
     };
-    { const rows = pick<Veranstaltungen>(0, 'veranstaltungen'); if (rows) setVeranstaltungen(rows); }
-    { const rows = pick<Interaktionen>(1, 'interaktionen'); if (rows) setInteraktionen(rows); }
-    { const rows = pick<Feedbacks>(2, 'feedbacks'); if (rows) setFeedbacks(rows); }
-    { const rows = pick<Zusammenfassungen>(3, 'zusammenfassungen'); if (rows) setZusammenfassungen(rows); }
+    { const rows = pick<Zusammenfassungen>(0, 'zusammenfassungen'); if (rows) setZusammenfassungen(rows); }
+    { const rows = pick<Veranstaltungen>(1, 'veranstaltungen'); if (rows) setVeranstaltungen(rows); }
+    { const rows = pick<Interaktionen>(2, 'interaktionen'); if (rows) setInteraktionen(rows); }
+    { const rows = pick<Feedbacks>(3, 'feedbacks'); if (rows) setFeedbacks(rows); }
     { const rows = pick<Abschlussbewertungen>(4, 'abschlussbewertungen'); if (rows) setAbschlussbewertungen(rows); }
     forbiddenRef.current = denied;
     setForbidden(prev => (prev.join('|') === denied.join('|') ? prev : denied));
@@ -76,10 +76,10 @@ export function useDashboardData(options: DashboardDataOptions = {}) {
     const omit = new Set(omitKey ? omitKey.split('|') : []);
     try {
       const failure = settle(await Promise.allSettled([
+        omit.has('zusammenfassungen') ? Promise.resolve([] as Zusammenfassungen[]) : LivingAppsService.getZusammenfassungen(),
         omit.has('veranstaltungen') ? Promise.resolve([] as Veranstaltungen[]) : LivingAppsService.getVeranstaltungen(),
         omit.has('interaktionen') ? Promise.resolve([] as Interaktionen[]) : LivingAppsService.getInteraktionen(),
         omit.has('feedbacks') ? Promise.resolve([] as Feedbacks[]) : LivingAppsService.getFeedbacks(),
-        omit.has('zusammenfassungen') ? Promise.resolve([] as Zusammenfassungen[]) : LivingAppsService.getZusammenfassungen(),
         omit.has('abschlussbewertungen') ? Promise.resolve([] as Abschlussbewertungen[]) : LivingAppsService.getAbschlussbewertungen(),
       ]));
       if (failure) throw failure;
@@ -100,10 +100,10 @@ export function useDashboardData(options: DashboardDataOptions = {}) {
         // a failed list keeps its stale data out of the way: settle() only
         // replaces what loaded or was refused
         settle(await Promise.allSettled([
+          omit.has('zusammenfassungen') ? Promise.resolve([] as Zusammenfassungen[]) : LivingAppsService.getZusammenfassungen(),
           omit.has('veranstaltungen') ? Promise.resolve([] as Veranstaltungen[]) : LivingAppsService.getVeranstaltungen(),
           omit.has('interaktionen') ? Promise.resolve([] as Interaktionen[]) : LivingAppsService.getInteraktionen(),
           omit.has('feedbacks') ? Promise.resolve([] as Feedbacks[]) : LivingAppsService.getFeedbacks(),
-          omit.has('zusammenfassungen') ? Promise.resolve([] as Zusammenfassungen[]) : LivingAppsService.getZusammenfassungen(),
           omit.has('abschlussbewertungen') ? Promise.resolve([] as Abschlussbewertungen[]) : LivingAppsService.getAbschlussbewertungen(),
         ]));
       } catch {
@@ -125,10 +125,10 @@ export function useDashboardData(options: DashboardDataOptions = {}) {
     async function tick() {
       try {
         settle(await Promise.allSettled([
+          !only.has('zusammenfassungen') ? Promise.reject(SKIP) : omit.has('zusammenfassungen') ? Promise.resolve([] as Zusammenfassungen[]) : LivingAppsService.getZusammenfassungen(),
           !only.has('veranstaltungen') ? Promise.reject(SKIP) : omit.has('veranstaltungen') ? Promise.resolve([] as Veranstaltungen[]) : LivingAppsService.getVeranstaltungen(),
           !only.has('interaktionen') ? Promise.reject(SKIP) : omit.has('interaktionen') ? Promise.resolve([] as Interaktionen[]) : LivingAppsService.getInteraktionen(),
           !only.has('feedbacks') ? Promise.reject(SKIP) : omit.has('feedbacks') ? Promise.resolve([] as Feedbacks[]) : LivingAppsService.getFeedbacks(),
-          !only.has('zusammenfassungen') ? Promise.reject(SKIP) : omit.has('zusammenfassungen') ? Promise.resolve([] as Zusammenfassungen[]) : LivingAppsService.getZusammenfassungen(),
           !only.has('abschlussbewertungen') ? Promise.reject(SKIP) : omit.has('abschlussbewertungen') ? Promise.resolve([] as Abschlussbewertungen[]) : LivingAppsService.getAbschlussbewertungen(),
         ]));
       } catch {
@@ -157,7 +157,7 @@ export function useDashboardData(options: DashboardDataOptions = {}) {
     return m;
   }, [interaktionen]);
 
-  return { veranstaltungen, setVeranstaltungen, interaktionen, setInteraktionen, feedbacks, setFeedbacks, zusammenfassungen, setZusammenfassungen, abschlussbewertungen, setAbschlussbewertungen, loading, error, fetchAll, forbidden, veranstaltungenMap, interaktionenMap };
+  return { zusammenfassungen, setZusammenfassungen, veranstaltungen, setVeranstaltungen, interaktionen, setInteraktionen, feedbacks, setFeedbacks, abschlussbewertungen, setAbschlussbewertungen, loading, error, fetchAll, forbidden, veranstaltungenMap, interaktionenMap };
 }
 
 /** The hook's return — the `data` prop of DashboardOverview in the Ready-Wrapper form. */

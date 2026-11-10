@@ -2,7 +2,7 @@ import '@/lib/sentry';
 import '@/lib/stale-bundle';
 import { Fragment, lazy, Suspense, useEffect, useState } from 'react';
 import { HashRouter, Routes, Route, useLocation } from 'react-router-dom';
-import { locale, onLocaleChange, syncProfileLocale, t, tx, appgroupLabel } from '@/i18n';
+import { locale, onLocaleChange, syncProfileLocale, t } from '@/i18n';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ErrorBusProvider } from '@/components/ErrorBus';
 import { IntentPolicyLoader } from '@/components/IntentPolicyLoader';
@@ -17,21 +17,12 @@ const PublicPageFields = lazy(() => import('@/pages/PublicPageFields'));
 const IntentFields = lazy(() => import('@/pages/IntentFields'));
 const IntentsAdmin = lazy(() => import('@/pages/IntentsAdmin'));
 const AppMap = lazy(() => import('@/pages/AppMap'));
-const QrCodeView = lazy(() => import('@/pages/views/QrCodeView'));
-const ZusammenfassungView = lazy(() => import('@/pages/views/ZusammenfassungView'));
 // <custom:imports>
 import { DashboardSkeleton } from '@/components/DashboardStates';
 const IntentInteraktionAktivierenPage = lazy(() => import('@/pages/intents/InteraktionAktivierenPage'));
 const IntentFeedbacksZusammenfassenPage = lazy(() => import('@/pages/intents/FeedbacksZusammenfassenPage'));
 const IntentKiAntwortEintragenPage = lazy(() => import('@/pages/intents/KiAntwortEintragenPage'));
 // </custom:imports>
-
-// a view outside the chrome never mounts <Layout>, whose effect sets the tab title —
-// the beamer tab read „claude-react-base“ (0.0.502)
-function ViewTitle({ title, children }: { title: string; children: React.ReactNode }) {
-  useEffect(() => { document.title = `${tx(title)} – ${appgroupLabel()}`; }, [title]);
-  return <>{children}</>;
-}
 
 // Lazy: public pages live outside <Layout> and only load on /#/public/:slug —
 // dashboard users never pay for them, anonymous visitors skip the dashboard.
@@ -78,12 +69,9 @@ const APPGROUP_ID = '6af2ebaac5e51710d6937da9';
 // arrival) must not tear the element down mid-chat; the element follows
 // <html lang> itself. Hidden on anonymous public routes; its 401 guard is
 // the backstop, not the mechanism.
-// a view outside the chrome (a beamer, a kiosk) shows no assistant button either (S-22)
-const BARE_VIEW_PATHS = ['/ansicht/qr-code', '/ansicht/zusammenfassung'];
 function AssistantMount() {
   const location = useLocation();
   if (location.pathname.startsWith('/public')) return null;
-  if (BARE_VIEW_PATHS.includes(location.pathname)) return null;
   return <la-klar-assistant appgroup-id={APPGROUP_ID} />;
 }
 
@@ -103,8 +91,6 @@ export default function App() {
                   `node scripts/wire-intent.mjs --bare`, kept across updates (S-2). */}
               {/* <custom:bare-routes> */}
               {/* </custom:bare-routes> */}
-              <Route path="ansicht/qr-code" element={<Suspense fallback={null}><ViewTitle title="QR-Code Feedback"><QrCodeView /></ViewTitle></Suspense>} />
-              <Route path="ansicht/zusammenfassung" element={<Suspense fallback={null}><ViewTitle title="Zusammenfassung"><ZusammenfassungView /></ViewTitle></Suspense>} />
               <Route element={<Suspense fallback={null}><Layout /></Suspense>}>
                 <Route index element={<DashboardReady />} />
                 <Route path="verwaltung/ablaeufe" element={<IntentsAdmin />} />

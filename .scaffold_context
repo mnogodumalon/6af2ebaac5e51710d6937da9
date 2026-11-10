@@ -14,7 +14,7 @@ index.css is pre-generated with the shared design system. Do NOT edit it.
 src/config/ai-features.ts is editable — set AI_PHOTO_SCAN['Entity'] = true to enable photo scan in dialogs.
 NEVER use Bash cat/echo/heredoc for file operations — always use Read/Write/Edit tools.
 
-Generated 172 scaffold files:
+Generated 169 scaffold files:
   - src/App.tsx
   - src/i18n/index.ts
   - src/i18n/common.ts
@@ -113,9 +113,6 @@ Generated 172 scaffold files:
   - src/services/journeyPort.ts
   - src/config/journey.ts
   - src/config/plan.ts
-  - src/lib/journey/flows/InteraktionAktivieren.ts
-  - src/lib/journey/flows/FeedbacksZusammenfassen.ts
-  - src/lib/journey/flows/KiAntwortEintragen.ts
   - scripts/check-journey.mjs
   - scripts/render-smoke.mjs
   - src/lib/consent.ts
@@ -174,14 +171,14 @@ Generated 172 scaffold files:
   - src/components/widgets/QrCode.example.tsx
   - src/components/widgets/PublicPageQr.tsx
   - tsconfig.app.json
+  - src/components/dialogs/ZusammenfassungenDialog.tsx
+  - src/components/details/ZusammenfassungenDetails.tsx
   - src/components/dialogs/VeranstaltungenDialog.tsx
   - src/components/details/VeranstaltungenDetails.tsx
   - src/components/dialogs/InteraktionenDialog.tsx
   - src/components/details/InteraktionenDetails.tsx
   - src/components/dialogs/FeedbacksDialog.tsx
   - src/components/details/FeedbacksDetails.tsx
-  - src/components/dialogs/ZusammenfassungenDialog.tsx
-  - src/components/details/ZusammenfassungenDetails.tsx
   - src/components/dialogs/AbschlussbewertungenDialog.tsx
   - src/components/details/AbschlussbewertungenDetails.tsx
   - src/components/EntityCrud.tsx
@@ -200,15 +197,15 @@ WRONG: `{ type: 'rechnung'; record: Rechnungen }` … `top.record.kundeName` (TS
 ```
 import type { Abschlussbewertungen, Feedbacks, Interaktionen, Zusammenfassungen } from './app';
 
+export type EnrichedZusammenfassungen = Zusammenfassungen & {
+  interaktionName: string;
+};
+
 export type EnrichedInteraktionen = Interaktionen & {
   veranstaltungName: string;
 };
 
 export type EnrichedFeedbacks = Feedbacks & {
-  interaktionName: string;
-};
-
-export type EnrichedZusammenfassungen = Zusammenfassungen & {
   interaktionName: string;
 };
 
@@ -223,17 +220,17 @@ export type EnrichedAbschlussbewertungen = Abschlussbewertungen & {
 `appLabel(key)` from '@/i18n' returns the entity name in the ACTIVE language.
 These are ALL the keys; the names are shown for orientation only:
 
+  appLabel('zusammenfassungen')     →  Zusammenfassungen
   appLabel('veranstaltungen')       →  Veranstaltungen
   appLabel('interaktionen')         →  Interaktionen
   appLabel('feedbacks')             →  Feedbacks
-  appLabel('zusammenfassungen')     →  Zusammenfassungen
   appLabel('abschlussbewertungen')  →  Abschlussbewertungen
 
-WRONG: `title="Veranstaltungen"` — and equally wrong: a local helper that returns
+WRONG: `title="Zusammenfassungen"` — and equally wrong: a local helper that returns
        that literal behind an `i18n-exempt` marker. Gate 21 and the mechanical
        healer both SKIP that marker, so the label stays frozen in one language
        and NOTHING reports it.
-RIGHT: `title={appLabel('veranstaltungen')}`
+RIGHT: `title={appLabel('zusammenfassungen')}`
 
 ## Component API cheatsheet
 
@@ -301,7 +298,7 @@ contracts; Read one only if the contract below is insufficient.
  *   const crud = useEntityCrud(data, {
  *     // optional — the ONE semantic slot on the overlay: the record's next
  *     // workflow step. Return undefined for types without one.
- *     footer: (top) => top.type === 'veranstaltungen'
+ *     footer: (top) => top.type === 'zusammenfassungen'
  *       ? { label: …, onClick: () => … }
  *       : undefined,
  *   });
@@ -309,14 +306,14 @@ contracts; Read one only if the contract below is insufficient.
  *   `top.type` is the SAME camelCase key as `crud.<entity>` — one spelling
  *   per entity, everywhere in this API.
  *   …
- *   crud.veranstaltungen.openCreate({ …defaults })   // create dialog, prefilled — defaults are
+ *   crud.zusammenfassungen.openCreate({ …defaults })   // create dialog, prefilled — defaults are
  *                                       // shape-tolerant: bare lookup keys / record ids are fine
- *   crud.veranstaltungen.openEdit(record)            // edit dialog (recordId + defaults wired)
- *   crud.veranstaltungen.openDetail(record)          // record overlay — pass the RAW record,
+ *   crud.zusammenfassungen.openEdit(record)            // edit dialog (recordId + defaults wired)
+ *   crud.zusammenfassungen.openDetail(record)          // record overlay — pass the RAW record,
  *                                       // enrichment is resolved inside
  *   crud.overlay                         // RecordOverlayStack<OverlayItem> for drills:
  *                                       // push / pop / replace / close
- *   crud.enriched.veranstaltungen              // the display-ready array for EVERY entity —
+ *   crud.enriched.zusammenfassungen              // the display-ready array for EVERY entity —
  *                                       // Enriched* where relations exist, the raw array
  *                                       // otherwise. Reuse these; never call enrich*()
  *                                       // in the page, and never guess which entity has
@@ -334,10 +331,10 @@ contracts; Read one only if the contract below is insufficient.
  *
  * Overlay content per entity (the host renders these — you never compose
  * Details blocks yourself):
- *   veranstaltungen: titel, datum, beschreibung  ·  ← interaktionen (list + contextual +) · ← abschlussbewertungen (list + contextual +)
- *   interaktionen: veranstaltung, reihenfolge, frage, erlaeuterung, vorprompt, endprompt, aktiv  ·  → veranstaltungen · ← feedbacks (list + contextual +) · ← zusammenfassungen (list + contextual +)
- *   feedbacks: interaktion, kuerzel, feedback_text, absende_kennung  ·  → interaktionen
  *   zusammenfassungen: interaktion, zeitpunkt, zusammenfassung_text, ki_antwort  ·  → interaktionen
+ *   veranstaltungen: titel, datum, beschreibung  ·  ← interaktionen (list + contextual +) · ← abschlussbewertungen (list + contextual +)
+ *   interaktionen: veranstaltung, reihenfolge, frage, erlaeuterung, vorprompt, endprompt, aktiv  ·  → veranstaltungen · ← zusammenfassungen (list + contextual +) · ← feedbacks (list + contextual +)
+ *   feedbacks: interaktion, kuerzel, feedback_text, absende_kennung  ·  → interaktionen
  *   abschlussbewertungen: veranstaltung, kuerzel, besonders_toll, verbesserung, referenzstatement, email, einwilligung  ·  → veranstaltungen
  */
 ```

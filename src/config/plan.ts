@@ -17,45 +17,17 @@ import { INTENTS } from '@/config/intents';
 export const SYSTEM_ASSIGNED: Record<string, string[]> = {};
 
 export const PLAN_SENTENCES: Record<string, string[]> = {
-  "interaktion-aktivieren": [
-    "Ändert: interaktionen"
-  ],
-  "feedbacks-zusammenfassen": [
-    "Legt an: zusammenfassungen",
-    "Automatisch: zeitpunkt (aktueller Zeitpunkt, automatisch), zusammenfassung_text (Vorprompt der Interaktion, dann jedes Feedback der Interaktion der Reihe nach mit seine …)"
-  ],
-  "ki-antwort-eintragen": [
-    "Ändert: zusammenfassungen"
-  ]
+  "interaktion-aktivieren": [],
+  "feedbacks-zusammenfassen": [],
+  "ki-antwort-eintragen": []
 };
 
-export const PLAN_SUMMARY = "Du moderierst Veranstaltungen und lässt die Teilnehmenden gemeinsam mit KI denken. Du legst Veranstaltungen und Interaktionen (Frage, Erläuterung, Vorprompt, Endprompt, feste Reihenfolge) selbst an; je Veranstaltung ist genau eine Interaktion aktiv. Teilnehmende scannen einen QR-Code und geben ohne Anmeldung beliebig viele Feedbacks zur aktiven Interaktion, jedes Handy bekommt still ein fünfstelliges Kürzel. Du fasst die Feedbacks mit einem Klick zu einem bearbeitbaren Text zusammen (Vorprompt, Feedbacks mit Kürzel, Endprompt), kopierst ihn in einen Chatbot und trägst die KI-Antwort bei der Zusammenfassung ein. Am Ende des Abends geben Teilnehmende eine Abschlussbewertung mit Referenzstatement und freiwillig E-Mail mit Einwilligung ab.";
+export const PLAN_SUMMARY = "Gemeinsam denken mit KI";
 
 /** entity → the plan's noun („Frage“ / „Fragen“). A review row or a plan step
  *  names ONE record, so it reads the singular (J-6, 03.11.2026: „Auswertungen:
  *  Sommerfest“ for one record); the app label is the list's plural. */
-export const NOUNS: Record<string, { one: string; many: string }> = {
-  "feedbacks": {
-    "one": "Feedback",
-    "many": "Feedbacks"
-  },
-  "interaktionen": {
-    "one": "Interaktion",
-    "many": "Interaktionen"
-  },
-  "veranstaltungen": {
-    "one": "Veranstaltung",
-    "many": "Veranstaltungen"
-  },
-  "zusammenfassungen": {
-    "one": "Zusammenfassung",
-    "many": "Zusammenfassungen"
-  },
-  "abschlussbewertungen": {
-    "one": "Abschlussbewertung",
-    "many": "Abschlussbewertungen"
-  }
-};
+export const NOUNS: Record<string, { one: string; many: string }> = {};
 
 export function nounOne(entity: string, fallback: string): string {
   return NOUNS[entity]?.one || fallback;
@@ -70,17 +42,7 @@ export function countOf(entity: string, n: number, many: string): string {
 
 /** slug → the lists a flow writes (the plan's Schreibliste). The nav leaves a
  *  flow out for a user who may not write one of them (lib/permissions.ts). */
-export const FLOW_ENTITIES: Record<string, string[]> = {
-  "interaktion-aktivieren": [
-    "interaktionen"
-  ],
-  "feedbacks-zusammenfassen": [
-    "zusammenfassungen"
-  ],
-  "ki-antwort-eintragen": [
-    "zusammenfassungen"
-  ]
-};
+export const FLOW_ENTITIES: Record<string, string[]> = {};
 
 /** A field an UPDATE flow writes, and the value it fixes (if it does). */
 export interface FlowOwner { slug: string; value?: string }
@@ -89,15 +51,7 @@ export interface FlowOwner { slug: string; value?: string }
  *  flow's job — it records who and when (a review, a decision) — so the
  *  dashboard never writes these fields itself; it opens the flow
  *  (check-dashboard gate 25). */
-export const FLOW_OWNED: Record<string, Record<string, FlowOwner[]>> = {
-  "zusammenfassungen": {
-    "ki_antwort": [
-      {
-        "slug": "ki-antwort-eintragen"
-      }
-    ]
-  }
-};
+export const FLOW_OWNED: Record<string, Record<string, FlowOwner[]>> = {};
 
 /** The link that opens the flow owning `entity.field` with `recordId` already
  *  picked — `toValue` chooses between flows that fix different values (the
@@ -164,10 +118,7 @@ export function flowActionFor(entity: string, field: string, recordId: string, t
 }
 
 /** route → hash path of the plan's display views (dashboard.views). */
-export const VIEW_PATHS: Record<string, string> = {
-  "qr-code": "ansicht/qr-code",
-  "zusammenfassung": "ansicht/zusammenfassung"
-};
+export const VIEW_PATHS: Record<string, string> = {};
 
 /** The link to a view — for ONE record always with `?record=` (EF-30: a QR view opened without it
  *  showed the first active interaction app-wide, another event's). `href={viewHref('qr-code', r.record_id)}`. */

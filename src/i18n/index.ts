@@ -1696,6 +1696,17 @@ export const LABELS: Record<CoreLocale, LabelBundle> = {
   "de": {
     "appgroup": "Gemeinsam denken mit KI",
     "apps": {
+      "zusammenfassungen": {
+        "name": "Zusammenfassungen",
+        "app_id": "6af2ebaceb6560837157f5f2",
+        "fields": {
+          "interaktion": "Interaktion",
+          "zeitpunkt": "Zeitpunkt",
+          "zusammenfassung_text": "Zusammenfassung",
+          "ki_antwort": "Antwort der KI"
+        },
+        "lookups": {}
+      },
       "veranstaltungen": {
         "name": "Veranstaltungen",
         "app_id": "6af2ebab6c24ff663152135c",
@@ -1731,17 +1742,6 @@ export const LABELS: Record<CoreLocale, LabelBundle> = {
         },
         "lookups": {}
       },
-      "zusammenfassungen": {
-        "name": "Zusammenfassungen",
-        "app_id": "6af2ebaceb6560837157f5f2",
-        "fields": {
-          "interaktion": "Interaktion",
-          "zeitpunkt": "Zeitpunkt",
-          "zusammenfassung_text": "Zusammenfassung",
-          "ki_antwort": "Antwort der KI"
-        },
-        "lookups": {}
-      },
       "abschlussbewertungen": {
         "name": "Abschlussbewertungen",
         "app_id": "6af2ebac39ef61ecf9c29581",
@@ -1761,6 +1761,17 @@ export const LABELS: Record<CoreLocale, LabelBundle> = {
   "en": {
     "appgroup": "Thinking Together with AI",
     "apps": {
+      "zusammenfassungen": {
+        "name": "Summaries",
+        "app_id": "6af2ebaceb6560837157f5f2",
+        "fields": {
+          "interaktion": "Interaction",
+          "zeitpunkt": "Time",
+          "zusammenfassung_text": "Summary",
+          "ki_antwort": "AI Response"
+        },
+        "lookups": {}
+      },
       "veranstaltungen": {
         "name": "Events",
         "app_id": "6af2ebab6c24ff663152135c",
@@ -1790,20 +1801,9 @@ export const LABELS: Record<CoreLocale, LabelBundle> = {
         "app_id": "6af2ebabcef1e9e77dca37cf",
         "fields": {
           "interaktion": "Interaction",
-          "kuerzel": "Abbreviation",
+          "kuerzel": "Code",
           "feedback_text": "Your Feedback",
-          "absende_kennung": "Submitter ID"
-        },
-        "lookups": {}
-      },
-      "zusammenfassungen": {
-        "name": "Summaries",
-        "app_id": "6af2ebaceb6560837157f5f2",
-        "fields": {
-          "interaktion": "Interaction",
-          "zeitpunkt": "Time",
-          "zusammenfassung_text": "Summary",
-          "ki_antwort": "AI Response"
+          "absende_kennung": "Submission ID"
         },
         "lookups": {}
       },
@@ -1812,7 +1812,7 @@ export const LABELS: Record<CoreLocale, LabelBundle> = {
         "app_id": "6af2ebac39ef61ecf9c29581",
         "fields": {
           "veranstaltung": "Event",
-          "kuerzel": "Abbreviation",
+          "kuerzel": "Code",
           "besonders_toll": "What was especially great?",
           "verbesserung": "What can be improved?",
           "referenzstatement": "Reference Statement",

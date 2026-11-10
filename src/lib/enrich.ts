@@ -12,6 +12,20 @@ function resolveDisplay(url: unknown, map: Map<string, any>, ...fields: string[]
   return fields.map(f => String(r.fields[f] ?? '')).join(' ').trim();
 }
 
+interface ZusammenfassungenMaps {
+  interaktionenMap: Map<string, Interaktionen>;
+}
+
+export function enrichZusammenfassungen(
+  zusammenfassungen: Zusammenfassungen[],
+  maps: ZusammenfassungenMaps
+): EnrichedZusammenfassungen[] {
+  return zusammenfassungen.map(r => ({
+    ...r,
+    interaktionName: resolveDisplay(r.fields.interaktion, maps.interaktionenMap, 'frage'),
+  }));
+}
+
 interface InteraktionenMaps {
   veranstaltungenMap: Map<string, Veranstaltungen>;
 }
@@ -35,20 +49,6 @@ export function enrichFeedbacks(
   maps: FeedbacksMaps
 ): EnrichedFeedbacks[] {
   return feedbacks.map(r => ({
-    ...r,
-    interaktionName: resolveDisplay(r.fields.interaktion, maps.interaktionenMap, 'frage'),
-  }));
-}
-
-interface ZusammenfassungenMaps {
-  interaktionenMap: Map<string, Interaktionen>;
-}
-
-export function enrichZusammenfassungen(
-  zusammenfassungen: Zusammenfassungen[],
-  maps: ZusammenfassungenMaps
-): EnrichedZusammenfassungen[] {
-  return zusammenfassungen.map(r => ({
     ...r,
     interaktionName: resolveDisplay(r.fields.interaktion, maps.interaktionenMap, 'frage'),
   }));

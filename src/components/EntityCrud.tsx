@@ -8,7 +8,7 @@
  *   const crud = useEntityCrud(data, {
  *     // optional — the ONE semantic slot on the overlay: the record's next
  *     // workflow step. Return undefined for types without one.
- *     footer: (top) => top.type === 'veranstaltungen'
+ *     footer: (top) => top.type === 'zusammenfassungen'
  *       ? { label: …, onClick: () => … }
  *       : undefined,
  *   });
@@ -16,14 +16,14 @@
  *   `top.type` is the SAME camelCase key as `crud.<entity>` — one spelling
  *   per entity, everywhere in this API.
  *   …
- *   crud.veranstaltungen.openCreate({ …defaults })   // create dialog, prefilled — defaults are
+ *   crud.zusammenfassungen.openCreate({ …defaults })   // create dialog, prefilled — defaults are
  *                                       // shape-tolerant: bare lookup keys / record ids are fine
- *   crud.veranstaltungen.openEdit(record)            // edit dialog (recordId + defaults wired)
- *   crud.veranstaltungen.openDetail(record)          // record overlay — pass the RAW record,
+ *   crud.zusammenfassungen.openEdit(record)            // edit dialog (recordId + defaults wired)
+ *   crud.zusammenfassungen.openDetail(record)          // record overlay — pass the RAW record,
  *                                       // enrichment is resolved inside
  *   crud.overlay                         // RecordOverlayStack<OverlayItem> for drills:
  *                                       // push / pop / replace / close
- *   crud.enriched.veranstaltungen              // the display-ready array for EVERY entity —
+ *   crud.enriched.zusammenfassungen              // the display-ready array for EVERY entity —
  *                                       // Enriched* where relations exist, the raw array
  *                                       // otherwise. Reuse these; never call enrich*()
  *                                       // in the page, and never guess which entity has
@@ -41,31 +41,31 @@
  *
  * Overlay content per entity (the host renders these — you never compose
  * Details blocks yourself):
- *   veranstaltungen: titel, datum, beschreibung  ·  ← interaktionen (list + contextual +) · ← abschlussbewertungen (list + contextual +)
- *   interaktionen: veranstaltung, reihenfolge, frage, erlaeuterung, vorprompt, endprompt, aktiv  ·  → veranstaltungen · ← feedbacks (list + contextual +) · ← zusammenfassungen (list + contextual +)
- *   feedbacks: interaktion, kuerzel, feedback_text, absende_kennung  ·  → interaktionen
  *   zusammenfassungen: interaktion, zeitpunkt, zusammenfassung_text, ki_antwort  ·  → interaktionen
+ *   veranstaltungen: titel, datum, beschreibung  ·  ← interaktionen (list + contextual +) · ← abschlussbewertungen (list + contextual +)
+ *   interaktionen: veranstaltung, reihenfolge, frage, erlaeuterung, vorprompt, endprompt, aktiv  ·  → veranstaltungen · ← zusammenfassungen (list + contextual +) · ← feedbacks (list + contextual +)
+ *   feedbacks: interaktion, kuerzel, feedback_text, absende_kennung  ·  → interaktionen
  *   abschlussbewertungen: veranstaltung, kuerzel, besonders_toll, verbesserung, referenzstatement, email, einwilligung  ·  → veranstaltungen
  */
 import { useState, useMemo, type ReactNode } from 'react';
-import type { Veranstaltungen, Interaktionen, Feedbacks, Zusammenfassungen, Abschlussbewertungen } from '@/types/app';
+import type { Zusammenfassungen, Veranstaltungen, Interaktionen, Feedbacks, Abschlussbewertungen } from '@/types/app';
 import { APP_IDS } from '@/types/app';
 import { LivingAppsService, createRecordUrl } from '@/services/livingAppsService';
-import { enrichInteraktionen, enrichFeedbacks, enrichZusammenfassungen, enrichAbschlussbewertungen } from '@/lib/enrich';
-import type { EnrichedInteraktionen, EnrichedFeedbacks, EnrichedZusammenfassungen, EnrichedAbschlussbewertungen } from '@/types/enriched';
+import { enrichZusammenfassungen, enrichInteraktionen, enrichFeedbacks, enrichAbschlussbewertungen } from '@/lib/enrich';
+import type { EnrichedZusammenfassungen, EnrichedInteraktionen, EnrichedFeedbacks, EnrichedAbschlussbewertungen } from '@/types/enriched';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import {
   useRecordOverlayStack, RecordOverlayHost, RecordHeader,
   type RecordOverlayStack,
 } from '@/components/widgets/RecordView';
+import { ZusammenfassungenDialog, type ZusammenfassungenDialogDefaults } from '@/components/dialogs/ZusammenfassungenDialog';
+import { ZusammenfassungenDetails } from '@/components/details/ZusammenfassungenDetails';
 import { VeranstaltungenDialog, type VeranstaltungenDialogDefaults } from '@/components/dialogs/VeranstaltungenDialog';
 import { VeranstaltungenDetails } from '@/components/details/VeranstaltungenDetails';
 import { InteraktionenDialog, type InteraktionenDialogDefaults } from '@/components/dialogs/InteraktionenDialog';
 import { InteraktionenDetails } from '@/components/details/InteraktionenDetails';
 import { FeedbacksDialog, type FeedbacksDialogDefaults } from '@/components/dialogs/FeedbacksDialog';
 import { FeedbacksDetails } from '@/components/details/FeedbacksDetails';
-import { ZusammenfassungenDialog, type ZusammenfassungenDialogDefaults } from '@/components/dialogs/ZusammenfassungenDialog';
-import { ZusammenfassungenDetails } from '@/components/details/ZusammenfassungenDetails';
 import { AbschlussbewertungenDialog, type AbschlussbewertungenDialogDefaults } from '@/components/dialogs/AbschlussbewertungenDialog';
 import { AbschlussbewertungenDetails } from '@/components/details/AbschlussbewertungenDetails';
 import { AI_PHOTO_SCAN, AI_PHOTO_LOCATION } from '@/config/ai-features';
@@ -79,10 +79,10 @@ import { formatDate } from '@/lib/formatters';
 // flows: Enriched* where enrichment exists, the raw record type otherwise.
 // The host resolves enrichment itself; pages pass raw records everywhere.
 export type OverlayItem =
+  | { type: 'zusammenfassungen'; record: EnrichedZusammenfassungen }
   | { type: 'veranstaltungen'; record: Veranstaltungen }
   | { type: 'interaktionen'; record: EnrichedInteraktionen }
   | { type: 'feedbacks'; record: EnrichedFeedbacks }
-  | { type: 'zusammenfassungen'; record: EnrichedZusammenfassungen }
   | { type: 'abschlussbewertungen'; record: EnrichedAbschlussbewertungen };
 
 /** The useDashboardData() return — pass it in, never re-fetch inside. */
@@ -114,15 +114,15 @@ export interface EntityCrud {
   overlay: RecordOverlayStack<OverlayItem>;
   /** Render ONCE at the end of the page JSX — all dialogs + the overlay host. */
   surfaces: ReactNode;
+  zusammenfassungen: EntityCrudApi<Zusammenfassungen, ZusammenfassungenDialogDefaults>;
   veranstaltungen: EntityCrudApi<Veranstaltungen, VeranstaltungenDialogDefaults>;
   interaktionen: EntityCrudApi<Interaktionen, InteraktionenDialogDefaults>;
   feedbacks: EntityCrudApi<Feedbacks, FeedbacksDialogDefaults>;
-  zusammenfassungen: EntityCrudApi<Zusammenfassungen, ZusammenfassungenDialogDefaults>;
   abschlussbewertungen: EntityCrudApi<Abschlussbewertungen, AbschlussbewertungenDialogDefaults>;
   /** The display-ready array per entity: Enriched* where an enrich function
    *  exists, the raw array otherwise. One key per entity so no page has to
    *  know which is which. Reuse these; never re-enrich in the page. */
-  enriched: { veranstaltungen: Veranstaltungen[]; interaktionen: EnrichedInteraktionen[]; feedbacks: EnrichedFeedbacks[]; zusammenfassungen: EnrichedZusammenfassungen[]; abschlussbewertungen: EnrichedAbschlussbewertungen[] };
+  enriched: { zusammenfassungen: EnrichedZusammenfassungen[]; veranstaltungen: Veranstaltungen[]; interaktionen: EnrichedInteraktionen[]; feedbacks: EnrichedFeedbacks[]; abschlussbewertungen: EnrichedAbschlussbewertungen[] };
 }
 
 export function useEntityCrud(data: EntityCrudData, options?: EntityCrudOptions): EntityCrud {
@@ -130,15 +130,44 @@ export function useEntityCrud(data: EntityCrudData, options?: EntityCrudOptions)
   // the platform's rights of the signed-in user (lib/permissions.ts) — unknown = allowed
   const perms = usePermissions();
   const refuse = () => { toast.error(t('perm_denied_title'), { description: t('perm_denied_desc') }); };
+  const [zusammenfassungenDialog, setZusammenfassungenDialog] = useState<{ defaults?: ZusammenfassungenDialogDefaults; editing?: Zusammenfassungen } | null>(null);
   const [veranstaltungenDialog, setVeranstaltungenDialog] = useState<{ defaults?: VeranstaltungenDialogDefaults; editing?: Veranstaltungen } | null>(null);
   const [interaktionenDialog, setInteraktionenDialog] = useState<{ defaults?: InteraktionenDialogDefaults; editing?: Interaktionen } | null>(null);
   const [feedbacksDialog, setFeedbacksDialog] = useState<{ defaults?: FeedbacksDialogDefaults; editing?: Feedbacks } | null>(null);
-  const [zusammenfassungenDialog, setZusammenfassungenDialog] = useState<{ defaults?: ZusammenfassungenDialogDefaults; editing?: Zusammenfassungen } | null>(null);
   const [abschlussbewertungenDialog, setAbschlussbewertungenDialog] = useState<{ defaults?: AbschlussbewertungenDialogDefaults; editing?: Abschlussbewertungen } | null>(null);
+  const enrichedZusammenfassungen = useMemo(() => enrichZusammenfassungen(data.zusammenfassungen, { interaktionenMap: data.interaktionenMap }), [data.zusammenfassungen, data.interaktionenMap]);
   const enrichedInteraktionen = useMemo(() => enrichInteraktionen(data.interaktionen, { veranstaltungenMap: data.veranstaltungenMap }), [data.interaktionen, data.veranstaltungenMap]);
   const enrichedFeedbacks = useMemo(() => enrichFeedbacks(data.feedbacks, { interaktionenMap: data.interaktionenMap }), [data.feedbacks, data.interaktionenMap]);
-  const enrichedZusammenfassungen = useMemo(() => enrichZusammenfassungen(data.zusammenfassungen, { interaktionenMap: data.interaktionenMap }), [data.zusammenfassungen, data.interaktionenMap]);
   const enrichedAbschlussbewertungen = useMemo(() => enrichAbschlussbewertungen(data.abschlussbewertungen, { veranstaltungenMap: data.veranstaltungenMap }), [data.abschlussbewertungen, data.veranstaltungenMap]);
+
+  function detailZusammenfassungen(record: Zusammenfassungen, push = false) {
+    const rec = enrichedZusammenfassungen.find(r => r.record_id === record.record_id);
+    if (!rec) return;
+    const item: OverlayItem = { type: 'zusammenfassungen', record: rec };
+    if (push) overlay.push(item); else overlay.replace(item);
+  }
+
+  async function submitZusammenfassungen(fields: Zusammenfassungen['fields']) {
+    const editing = zusammenfassungenDialog?.editing;
+    if (editing) {
+      const prev = editing;
+      data.setZusammenfassungen(list => list.map(r => (r.record_id === editing.record_id ? { ...r, fields } : r)));
+      try {
+        await LivingAppsService.updateZusammenfassungenEntry(editing.record_id, fields);
+      } catch (err) {
+        data.fetchAll();
+        throw err;
+      }
+      undoToast(`${appLabel('zusammenfassungen')} — ${t('crud_updated')}`, async () => {
+        data.setZusammenfassungen(list => list.map(r => (r.record_id === prev.record_id ? prev : r)));
+        try { await LivingAppsService.updateZusammenfassungenEntry(prev.record_id, prev.fields); } catch { data.fetchAll(); }
+      });
+    } else {
+      await LivingAppsService.createZusammenfassungenEntry(fields);
+      undoToast(`${appLabel('zusammenfassungen')} — ${t('crud_created')}`);
+      data.fetchAll();
+    }
+  }
 
   function detailVeranstaltungen(record: Veranstaltungen, push = false) {
     const item: OverlayItem = { type: 'veranstaltungen', record };
@@ -225,35 +254,6 @@ export function useEntityCrud(data: EntityCrudData, options?: EntityCrudOptions)
     }
   }
 
-  function detailZusammenfassungen(record: Zusammenfassungen, push = false) {
-    const rec = enrichedZusammenfassungen.find(r => r.record_id === record.record_id);
-    if (!rec) return;
-    const item: OverlayItem = { type: 'zusammenfassungen', record: rec };
-    if (push) overlay.push(item); else overlay.replace(item);
-  }
-
-  async function submitZusammenfassungen(fields: Zusammenfassungen['fields']) {
-    const editing = zusammenfassungenDialog?.editing;
-    if (editing) {
-      const prev = editing;
-      data.setZusammenfassungen(list => list.map(r => (r.record_id === editing.record_id ? { ...r, fields } : r)));
-      try {
-        await LivingAppsService.updateZusammenfassungenEntry(editing.record_id, fields);
-      } catch (err) {
-        data.fetchAll();
-        throw err;
-      }
-      undoToast(`${appLabel('zusammenfassungen')} — ${t('crud_updated')}`, async () => {
-        data.setZusammenfassungen(list => list.map(r => (r.record_id === prev.record_id ? prev : r)));
-        try { await LivingAppsService.updateZusammenfassungenEntry(prev.record_id, prev.fields); } catch { data.fetchAll(); }
-      });
-    } else {
-      await LivingAppsService.createZusammenfassungenEntry(fields);
-      undoToast(`${appLabel('zusammenfassungen')} — ${t('crud_created')}`);
-      data.fetchAll();
-    }
-  }
-
   function detailAbschlussbewertungen(record: Abschlussbewertungen, push = false) {
     const rec = enrichedAbschlussbewertungen.find(r => r.record_id === record.record_id);
     if (!rec) return;
@@ -285,6 +285,16 @@ export function useEntityCrud(data: EntityCrudData, options?: EntityCrudOptions)
 
   const surfaces = (
     <>
+      <ZusammenfassungenDialog
+        open={zusammenfassungenDialog !== null}
+        onClose={() => setZusammenfassungenDialog(null)}
+        onSubmit={submitZusammenfassungen}
+        defaultValues={zusammenfassungenDialog?.defaults}
+        recordId={zusammenfassungenDialog?.editing?.record_id}
+        interaktionenList={data.interaktionen}
+        enablePhotoScan={AI_PHOTO_SCAN['Zusammenfassungen']}
+        enablePhotoLocation={AI_PHOTO_LOCATION['Zusammenfassungen']}
+      />
       <VeranstaltungenDialog
         open={veranstaltungenDialog !== null}
         onClose={() => setVeranstaltungenDialog(null)}
@@ -314,16 +324,6 @@ export function useEntityCrud(data: EntityCrudData, options?: EntityCrudOptions)
         enablePhotoScan={AI_PHOTO_SCAN['Feedbacks']}
         enablePhotoLocation={AI_PHOTO_LOCATION['Feedbacks']}
       />
-      <ZusammenfassungenDialog
-        open={zusammenfassungenDialog !== null}
-        onClose={() => setZusammenfassungenDialog(null)}
-        onSubmit={submitZusammenfassungen}
-        defaultValues={zusammenfassungenDialog?.defaults}
-        recordId={zusammenfassungenDialog?.editing?.record_id}
-        interaktionenList={data.interaktionen}
-        enablePhotoScan={AI_PHOTO_SCAN['Zusammenfassungen']}
-        enablePhotoLocation={AI_PHOTO_LOCATION['Zusammenfassungen']}
-      />
       <AbschlussbewertungenDialog
         open={abschlussbewertungenDialog !== null}
         onClose={() => setAbschlussbewertungenDialog(null)}
@@ -340,6 +340,18 @@ export function useEntityCrud(data: EntityCrudData, options?: EntityCrudOptions)
         size={options?.size}
         footer={options?.footer}
         render={(top) => {
+          if (top.type === 'zusammenfassungen') {
+            return (
+              <>
+                <RecordHeader title={appLabel('zusammenfassungen')} subtitle={top.record.fields.zeitpunkt ? formatDate(top.record.fields.zeitpunkt) : undefined} />
+                <ZusammenfassungenDetails
+                  record={top.record}
+                  interaktionenList={data.interaktionen}
+                  onOpenInteraktionen={(r) => detailInteraktionen(r, true)}
+                />
+              </>
+            );
+          }
           if (top.type === 'veranstaltungen') {
             return (
               <>
@@ -364,12 +376,12 @@ export function useEntityCrud(data: EntityCrudData, options?: EntityCrudOptions)
                   record={top.record}
                   veranstaltungenList={data.veranstaltungen}
                   onOpenVeranstaltungen={(r) => detailVeranstaltungen(r, true)}
-                  feedbacksList={data.feedbacks}
-                  onOpenFeedbacks={(r) => detailFeedbacks(r, true)}
-                  onAddFeedbacks={perms.canWrite('feedbacks') ? () => setFeedbacksDialog({ defaults: { interaktion: createRecordUrl(APP_IDS.INTERAKTIONEN, top.record.record_id) } }) : undefined}
                   zusammenfassungenList={data.zusammenfassungen}
                   onOpenZusammenfassungen={(r) => detailZusammenfassungen(r, true)}
                   onAddZusammenfassungen={perms.canWrite('zusammenfassungen') ? () => setZusammenfassungenDialog({ defaults: { interaktion: createRecordUrl(APP_IDS.INTERAKTIONEN, top.record.record_id) } }) : undefined}
+                  feedbacksList={data.feedbacks}
+                  onOpenFeedbacks={(r) => detailFeedbacks(r, true)}
+                  onAddFeedbacks={perms.canWrite('feedbacks') ? () => setFeedbacksDialog({ defaults: { interaktion: createRecordUrl(APP_IDS.INTERAKTIONEN, top.record.record_id) } }) : undefined}
                 />
               </>
             );
@@ -379,18 +391,6 @@ export function useEntityCrud(data: EntityCrudData, options?: EntityCrudOptions)
               <>
                 <RecordHeader title={top.record.fields.kuerzel ?? appLabel('feedbacks')} subtitle={undefined} />
                 <FeedbacksDetails
-                  record={top.record}
-                  interaktionenList={data.interaktionen}
-                  onOpenInteraktionen={(r) => detailInteraktionen(r, true)}
-                />
-              </>
-            );
-          }
-          if (top.type === 'zusammenfassungen') {
-            return (
-              <>
-                <RecordHeader title={appLabel('zusammenfassungen')} subtitle={top.record.fields.zeitpunkt ? formatDate(top.record.fields.zeitpunkt) : undefined} />
-                <ZusammenfassungenDetails
                   record={top.record}
                   interaktionenList={data.interaktionen}
                   onOpenInteraktionen={(r) => detailInteraktionen(r, true)}
@@ -413,19 +413,19 @@ export function useEntityCrud(data: EntityCrudData, options?: EntityCrudOptions)
           return null;
         }}
         canEdit={(top) => {
+          if (top.type === 'zusammenfassungen') return perms.canWrite('zusammenfassungen');
           if (top.type === 'veranstaltungen') return perms.canWrite('veranstaltungen');
           if (top.type === 'interaktionen') return perms.canWrite('interaktionen');
           if (top.type === 'feedbacks') return perms.canWrite('feedbacks');
-          if (top.type === 'zusammenfassungen') return perms.canWrite('zusammenfassungen');
           if (top.type === 'abschlussbewertungen') return perms.canWrite('abschlussbewertungen');
           return true;
         }}
         onEdit={(top) => {
           overlay.close();
+          if (top.type === 'zusammenfassungen') setZusammenfassungenDialog({ editing: top.record, defaults: top.record.fields });
           if (top.type === 'veranstaltungen') setVeranstaltungenDialog({ editing: top.record, defaults: top.record.fields });
           if (top.type === 'interaktionen') setInteraktionenDialog({ editing: top.record, defaults: top.record.fields });
           if (top.type === 'feedbacks') setFeedbacksDialog({ editing: top.record, defaults: top.record.fields });
-          if (top.type === 'zusammenfassungen') setZusammenfassungenDialog({ editing: top.record, defaults: top.record.fields });
           if (top.type === 'abschlussbewertungen') setAbschlussbewertungenDialog({ editing: top.record, defaults: top.record.fields });
         }}
       />
@@ -435,6 +435,12 @@ export function useEntityCrud(data: EntityCrudData, options?: EntityCrudOptions)
   return {
     overlay,
     surfaces,
+    zusammenfassungen: {
+      openCreate: (defaults?: ZusammenfassungenDialogDefaults) => (perms.canWrite('zusammenfassungen') ? setZusammenfassungenDialog({ defaults }) : refuse()),
+      openEdit: (record: Zusammenfassungen) => (perms.canWrite('zusammenfassungen') ? setZusammenfassungenDialog({ editing: record, defaults: record.fields }) : refuse()),
+      openDetail: (record: Zusammenfassungen) => detailZusammenfassungen(record, false),
+      canWrite: perms.canWrite('zusammenfassungen'),
+    },
     veranstaltungen: {
       openCreate: (defaults?: VeranstaltungenDialogDefaults) => (perms.canWrite('veranstaltungen') ? setVeranstaltungenDialog({ defaults }) : refuse()),
       openEdit: (record: Veranstaltungen) => (perms.canWrite('veranstaltungen') ? setVeranstaltungenDialog({ editing: record, defaults: record.fields }) : refuse()),
@@ -453,18 +459,12 @@ export function useEntityCrud(data: EntityCrudData, options?: EntityCrudOptions)
       openDetail: (record: Feedbacks) => detailFeedbacks(record, false),
       canWrite: perms.canWrite('feedbacks'),
     },
-    zusammenfassungen: {
-      openCreate: (defaults?: ZusammenfassungenDialogDefaults) => (perms.canWrite('zusammenfassungen') ? setZusammenfassungenDialog({ defaults }) : refuse()),
-      openEdit: (record: Zusammenfassungen) => (perms.canWrite('zusammenfassungen') ? setZusammenfassungenDialog({ editing: record, defaults: record.fields }) : refuse()),
-      openDetail: (record: Zusammenfassungen) => detailZusammenfassungen(record, false),
-      canWrite: perms.canWrite('zusammenfassungen'),
-    },
     abschlussbewertungen: {
       openCreate: (defaults?: AbschlussbewertungenDialogDefaults) => (perms.canWrite('abschlussbewertungen') ? setAbschlussbewertungenDialog({ defaults }) : refuse()),
       openEdit: (record: Abschlussbewertungen) => (perms.canWrite('abschlussbewertungen') ? setAbschlussbewertungenDialog({ editing: record, defaults: record.fields }) : refuse()),
       openDetail: (record: Abschlussbewertungen) => detailAbschlussbewertungen(record, false),
       canWrite: perms.canWrite('abschlussbewertungen'),
     },
-    enriched: { veranstaltungen: data.veranstaltungen, interaktionen: enrichedInteraktionen, feedbacks: enrichedFeedbacks, zusammenfassungen: enrichedZusammenfassungen, abschlussbewertungen: enrichedAbschlussbewertungen },
+    enriched: { zusammenfassungen: enrichedZusammenfassungen, veranstaltungen: data.veranstaltungen, interaktionen: enrichedInteraktionen, feedbacks: enrichedFeedbacks, abschlussbewertungen: enrichedAbschlussbewertungen },
   };
 }

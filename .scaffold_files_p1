@@ -32,6 +32,24 @@ export interface AttachmentInput {
   active?: boolean;
 }
 
+export interface Zusammenfassungen {
+  record_id: string;
+  /** The API field. */
+  created_at: string;
+  updated_at: string | null;
+  /** Alias of created_at, filled by the read helpers. The API sends
+   *  snake_case only — reading `createdat` off a raw record yields
+   *  undefined, which type-checks and then crashes at runtime. */
+  createdat: string;
+  updatedat: string | null;
+  fields: {
+    interaktion?: RecordUrl; // applookup -> URL zu 'Interaktionen' Record
+    zeitpunkt?: string; // Format: YYYY-MM-DD oder ISO String
+    zusammenfassung_text?: string;
+    ki_antwort?: string;
+  };
+}
+
 export interface Veranstaltungen {
   record_id: string;
   /** The API field. */
@@ -88,24 +106,6 @@ export interface Feedbacks {
   };
 }
 
-export interface Zusammenfassungen {
-  record_id: string;
-  /** The API field. */
-  created_at: string;
-  updated_at: string | null;
-  /** Alias of created_at, filled by the read helpers. The API sends
-   *  snake_case only — reading `createdat` off a raw record yields
-   *  undefined, which type-checks and then crashes at runtime. */
-  createdat: string;
-  updatedat: string | null;
-  fields: {
-    interaktion?: RecordUrl; // applookup -> URL zu 'Interaktionen' Record
-    zeitpunkt?: string; // Format: YYYY-MM-DD oder ISO String
-    zusammenfassung_text?: string;
-    ki_antwort?: string;
-  };
-}
-
 export interface Abschlussbewertungen {
   record_id: string;
   /** The API field. */
@@ -128,10 +128,10 @@ export interface Abschlussbewertungen {
 }
 
 export const APP_IDS = {
+  ZUSAMMENFASSUNGEN: '6af2ebaceb6560837157f5f2',
   VERANSTALTUNGEN: '6af2ebab6c24ff663152135c',
   INTERAKTIONEN: '6af2ebab9a1a53f7fe8fed6d',
   FEEDBACKS: '6af2ebabcef1e9e77dca37cf',
-  ZUSAMMENFASSUNGEN: '6af2ebaceb6560837157f5f2',
   ABSCHLUSSBEWERTUNGEN: '6af2ebac39ef61ecf9c29581',
 } as const;
 
@@ -139,6 +139,12 @@ export const APP_IDS = {
 export const LOOKUP_OPTIONS: Record<string, Record<string, {key: string, label: string}[]>> = {};
 
 export const FIELD_TYPES: Record<string, Record<string, string>> = {
+  'zusammenfassungen': {
+    'interaktion': 'applookup/select',
+    'zeitpunkt': 'date/datetimeminute',
+    'zusammenfassung_text': 'string/textarea',
+    'ki_antwort': 'string/textarea',
+  },
   'veranstaltungen': {
     'titel': 'string/text',
     'datum': 'date/date',
@@ -158,12 +164,6 @@ export const FIELD_TYPES: Record<string, Record<string, string>> = {
     'kuerzel': 'string/text',
     'feedback_text': 'string/textarea',
     'absende_kennung': 'string/text',
-  },
-  'zusammenfassungen': {
-    'interaktion': 'applookup/select',
-    'zeitpunkt': 'date/datetimeminute',
-    'zusammenfassung_text': 'string/textarea',
-    'ki_antwort': 'string/textarea',
   },
   'abschlussbewertungen': {
     'veranstaltung': 'applookup/select',
@@ -186,10 +186,10 @@ type StripLookup<T> = {
 };
 
 // Helper Types for creating new records (lookup fields as plain strings for API)
+export type CreateZusammenfassungen = StripLookup<Zusammenfassungen['fields']>;
 export type CreateVeranstaltungen = StripLookup<Veranstaltungen['fields']>;
 export type CreateInteraktionen = StripLookup<Interaktionen['fields']>;
 export type CreateFeedbacks = StripLookup<Feedbacks['fields']>;
-export type CreateZusammenfassungen = StripLookup<Zusammenfassungen['fields']>;
 export type CreateAbschlussbewertungen = StripLookup<Abschlussbewertungen['fields']>;
 ```
 
@@ -200,7 +200,7 @@ import { APP_IDS, LOOKUP_OPTIONS, FIELD_TYPES } from '@/types/app';
 import { ensureUploadableImage } from '@/lib/ai';
 import { REST_URL, restFetch } from '@/lib/origin';
 import { reportFailedWrite } from '@/lib/sentry';
-import type { Veranstaltungen, Interaktionen, Feedbacks, Zusammenfassungen, Abschlussbewertungen, CreateVeranstaltungen, CreateInteraktionen, CreateFeedbacks, CreateZusammenfassungen, CreateAbschlussbewertungen } from '@/types/app';
+import type { Zusammenfassungen, Veranstaltungen, Interaktionen, Feedbacks, Abschlussbewertungen, CreateZusammenfassungen, CreateVeranstaltungen, CreateInteraktionen, CreateFeedbacks, CreateAbschlussbewertungen } from '@/types/app';
 
 // Base Configuration — the host is a RUNTIME fact (lib/origin.ts):
 // a bundle copied to another LA instance must talk to THAT instance.
@@ -654,6 +654,44 @@ export async function getAppGroups(): Promise<AppGroupInfo[]> {
 }
 
 export class LivingAppsService {
+  // --- ZUSAMMENFASSUNGEN ---
+  static async getZusammenfassungen(): Promise<Zusammenfassungen[]> {
+    const data = await callApi('GET', `/apps/${APP_IDS.ZUSAMMENFASSUNGEN}/records`);
+    const records = Object.entries(data).map(([id, rec]: [string, any]) => ({
+      record_id: id, ...rec,
+      createdat: rec.created_at ?? '', updatedat: rec.updated_at ?? null,
+    })) as Zusammenfassungen[];
+    return hydrateRecords(records, 'zusammenfassungen');
+  }
+  static async queryZusammenfassungen(q: RecordQuery = {}): Promise<Zusammenfassungen[]> {
+    const data = await callApi('GET', `/apps/${APP_IDS.ZUSAMMENFASSUNGEN}/records${recordQueryString(q)}`, undefined, { signal: q.signal, silent: q.silent });
+    const records = Object.entries(data).map(([id, rec]: [string, any]) => ({
+      record_id: id, ...rec,
+      createdat: rec.created_at ?? '', updatedat: rec.updated_at ?? null,
+    })) as Zusammenfassungen[];
+    return hydrateRecords(records, 'zusammenfassungen');
+  }
+  static async countZusammenfassungen(filter?: string, signal?: AbortSignal): Promise<number> {
+    const data = await callApi('GET', `/apps/${APP_IDS.ZUSAMMENFASSUNGEN}/aggregate_records${recordQueryString({ filter })}${filter ? '&' : '?'}value=count()`, undefined, { signal, silent: true });
+    return parseAggregateCount(data);
+  }
+  static async getZusammenfassungenEntry(id: string): Promise<Zusammenfassungen | undefined> {
+    const data = await callApi('GET', `/apps/${APP_IDS.ZUSAMMENFASSUNGEN}/records/${id}`);
+    const record = { record_id: data.id, ...data, createdat: data.created_at ?? '', updatedat: data.updated_at ?? null } as Zusammenfassungen;
+    return hydrateRecords([record], 'zusammenfassungen')[0];
+  }
+  static async createZusammenfassungenEntry(fields: CreateZusammenfassungen): Promise<MutationResult> {
+    const data = await callApi('POST', `/apps/${APP_IDS.ZUSAMMENFASSUNGEN}/records`, { fields: cleanFieldsForApi(fields as any, 'zusammenfassungen') });
+    return { ...data, record_id: data.id };
+  }
+  static async updateZusammenfassungenEntry(id: string, fields: Partial<CreateZusammenfassungen>): Promise<MutationResult> {
+    const data = await callApi('PATCH', `/apps/${APP_IDS.ZUSAMMENFASSUNGEN}/records/${id}`, { fields: cleanFieldsForApi(fields as any, 'zusammenfassungen') });
+    return { ...data, record_id: data.id };
+  }
+  static async deleteZusammenfassungenEntry(id: string) {
+    return callApi('DELETE', `/apps/${APP_IDS.ZUSAMMENFASSUNGEN}/records/${id}`);
+  }
+
   // --- VERANSTALTUNGEN ---
   static async getVeranstaltungen(): Promise<Veranstaltungen[]> {
     const data = await callApi('GET', `/apps/${APP_IDS.VERANSTALTUNGEN}/records`);
@@ -768,44 +806,6 @@ export class LivingAppsService {
     return callApi('DELETE', `/apps/${APP_IDS.FEEDBACKS}/records/${id}`);
   }
 
-  // --- ZUSAMMENFASSUNGEN ---
-  static async getZusammenfassungen(): Promise<Zusammenfassungen[]> {
-    const data = await callApi('GET', `/apps/${APP_IDS.ZUSAMMENFASSUNGEN}/records`);
-    const records = Object.entries(data).map(([id, rec]: [string, any]) => ({
-      record_id: id, ...rec,
-      createdat: rec.created_at ?? '', updatedat: rec.updated_at ?? null,
-    })) as Zusammenfassungen[];
-    return hydrateRecords(records, 'zusammenfassungen');
-  }
-  static async queryZusammenfassungen(q: RecordQuery = {}): Promise<Zusammenfassungen[]> {
-    const data = await callApi('GET', `/apps/${APP_IDS.ZUSAMMENFASSUNGEN}/records${recordQueryString(q)}`, undefined, { signal: q.signal, silent: q.silent });
-    const records = Object.entries(data).map(([id, rec]: [string, any]) => ({
-      record_id: id, ...rec,
-      createdat: rec.created_at ?? '', updatedat: rec.updated_at ?? null,
-    })) as Zusammenfassungen[];
-    return hydrateRecords(records, 'zusammenfassungen');
-  }
-  static async countZusammenfassungen(filter?: string, signal?: AbortSignal): Promise<number> {
-    const data = await callApi('GET', `/apps/${APP_IDS.ZUSAMMENFASSUNGEN}/aggregate_records${recordQueryString({ filter })}${filter ? '&' : '?'}value=count()`, undefined, { signal, silent: true });
-    return parseAggregateCount(data);
-  }
-  static async getZusammenfassungenEntry(id: string): Promise<Zusammenfassungen | undefined> {
-    const data = await callApi('GET', `/apps/${APP_IDS.ZUSAMMENFASSUNGEN}/records/${id}`);
-    const record = { record_id: data.id, ...data, createdat: data.created_at ?? '', updatedat: data.updated_at ?? null } as Zusammenfassungen;
-    return hydrateRecords([record], 'zusammenfassungen')[0];
-  }
-  static async createZusammenfassungenEntry(fields: CreateZusammenfassungen): Promise<MutationResult> {
-    const data = await callApi('POST', `/apps/${APP_IDS.ZUSAMMENFASSUNGEN}/records`, { fields: cleanFieldsForApi(fields as any, 'zusammenfassungen') });
-    return { ...data, record_id: data.id };
-  }
-  static async updateZusammenfassungenEntry(id: string, fields: Partial<CreateZusammenfassungen>): Promise<MutationResult> {
-    const data = await callApi('PATCH', `/apps/${APP_IDS.ZUSAMMENFASSUNGEN}/records/${id}`, { fields: cleanFieldsForApi(fields as any, 'zusammenfassungen') });
-    return { ...data, record_id: data.id };
-  }
-  static async deleteZusammenfassungenEntry(id: string) {
-    return callApi('DELETE', `/apps/${APP_IDS.ZUSAMMENFASSUNGEN}/records/${id}`);
-  }
-
   // --- ABSCHLUSSBEWERTUNGEN ---
   static async getAbschlussbewertungen(): Promise<Abschlussbewertungen[]> {
     const data = await callApi('GET', `/apps/${APP_IDS.ABSCHLUSSBEWERTUNGEN}/records`);
@@ -853,7 +853,7 @@ import '@/lib/sentry';
 import '@/lib/stale-bundle';
 import { Fragment, lazy, Suspense, useEffect, useState } from 'react';
 import { HashRouter, Routes, Route, useLocation } from 'react-router-dom';
-import { locale, onLocaleChange, syncProfileLocale, t, tx, appgroupLabel } from '@/i18n';
+import { locale, onLocaleChange, syncProfileLocale, t } from '@/i18n';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ErrorBusProvider } from '@/components/ErrorBus';
 import { IntentPolicyLoader } from '@/components/IntentPolicyLoader';
@@ -868,21 +868,12 @@ const PublicPageFields = lazy(() => import('@/pages/PublicPageFields'));
 const IntentFields = lazy(() => import('@/pages/IntentFields'));
 const IntentsAdmin = lazy(() => import('@/pages/IntentsAdmin'));
 const AppMap = lazy(() => import('@/pages/AppMap'));
-const QrCodeView = lazy(() => import('@/pages/views/QrCodeView'));
-const ZusammenfassungView = lazy(() => import('@/pages/views/ZusammenfassungView'));
 // <custom:imports>
 import { DashboardSkeleton } from '@/components/DashboardStates';
 const IntentInteraktionAktivierenPage = lazy(() => import('@/pages/intents/InteraktionAktivierenPage'));
 const IntentFeedbacksZusammenfassenPage = lazy(() => import('@/pages/intents/FeedbacksZusammenfassenPage'));
 const IntentKiAntwortEintragenPage = lazy(() => import('@/pages/intents/KiAntwortEintragenPage'));
 // </custom:imports>
-
-// a view outside the chrome never mounts <Layout>, whose effect sets the tab title —
-// the beamer tab read „claude-react-base“ (0.0.502)
-function ViewTitle({ title, children }: { title: string; children: React.ReactNode }) {
-  useEffect(() => { document.title = `${tx(title)} – ${appgroupLabel()}`; }, [title]);
-  return <>{children}</>;
-}
 
 // Lazy: public pages live outside <Layout> and only load on /#/public/:slug —
 // dashboard users never pay for them, anonymous visitors skip the dashboard.
@@ -929,12 +920,9 @@ const APPGROUP_ID = '6af2ebaac5e51710d6937da9';
 // arrival) must not tear the element down mid-chat; the element follows
 // <html lang> itself. Hidden on anonymous public routes; its 401 guard is
 // the backstop, not the mechanism.
-// a view outside the chrome (a beamer, a kiosk) shows no assistant button either (S-22)
-const BARE_VIEW_PATHS = ['/ansicht/qr-code', '/ansicht/zusammenfassung'];
 function AssistantMount() {
   const location = useLocation();
   if (location.pathname.startsWith('/public')) return null;
-  if (BARE_VIEW_PATHS.includes(location.pathname)) return null;
   return <la-klar-assistant appgroup-id={APPGROUP_ID} />;
 }
 
@@ -954,8 +942,6 @@ export default function App() {
                   `node scripts/wire-intent.mjs --bare`, kept across updates (S-2). */}
               {/* <custom:bare-routes> */}
               {/* </custom:bare-routes> */}
-              <Route path="ansicht/qr-code" element={<Suspense fallback={null}><ViewTitle title="QR-Code Feedback"><QrCodeView /></ViewTitle></Suspense>} />
-              <Route path="ansicht/zusammenfassung" element={<Suspense fallback={null}><ViewTitle title="Zusammenfassung"><ZusammenfassungView /></ViewTitle></Suspense>} />
               <Route element={<Suspense fallback={null}><Layout /></Suspense>}>
                 <Route index element={<DashboardReady />} />
                 <Route path="verwaltung/ablaeufe" element={<IntentsAdmin />} />

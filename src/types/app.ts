@@ -27,6 +27,24 @@ export interface AttachmentInput {
   active?: boolean;
 }
 
+export interface Zusammenfassungen {
+  record_id: string;
+  /** The API field. */
+  created_at: string;
+  updated_at: string | null;
+  /** Alias of created_at, filled by the read helpers. The API sends
+   *  snake_case only — reading `createdat` off a raw record yields
+   *  undefined, which type-checks and then crashes at runtime. */
+  createdat: string;
+  updatedat: string | null;
+  fields: {
+    interaktion?: RecordUrl; // applookup -> URL zu 'Interaktionen' Record
+    zeitpunkt?: string; // Format: YYYY-MM-DD oder ISO String
+    zusammenfassung_text?: string;
+    ki_antwort?: string;
+  };
+}
+
 export interface Veranstaltungen {
   record_id: string;
   /** The API field. */
@@ -83,24 +101,6 @@ export interface Feedbacks {
   };
 }
 
-export interface Zusammenfassungen {
-  record_id: string;
-  /** The API field. */
-  created_at: string;
-  updated_at: string | null;
-  /** Alias of created_at, filled by the read helpers. The API sends
-   *  snake_case only — reading `createdat` off a raw record yields
-   *  undefined, which type-checks and then crashes at runtime. */
-  createdat: string;
-  updatedat: string | null;
-  fields: {
-    interaktion?: RecordUrl; // applookup -> URL zu 'Interaktionen' Record
-    zeitpunkt?: string; // Format: YYYY-MM-DD oder ISO String
-    zusammenfassung_text?: string;
-    ki_antwort?: string;
-  };
-}
-
 export interface Abschlussbewertungen {
   record_id: string;
   /** The API field. */
@@ -123,10 +123,10 @@ export interface Abschlussbewertungen {
 }
 
 export const APP_IDS = {
+  ZUSAMMENFASSUNGEN: '6af2ebaceb6560837157f5f2',
   VERANSTALTUNGEN: '6af2ebab6c24ff663152135c',
   INTERAKTIONEN: '6af2ebab9a1a53f7fe8fed6d',
   FEEDBACKS: '6af2ebabcef1e9e77dca37cf',
-  ZUSAMMENFASSUNGEN: '6af2ebaceb6560837157f5f2',
   ABSCHLUSSBEWERTUNGEN: '6af2ebac39ef61ecf9c29581',
 } as const;
 
@@ -134,6 +134,12 @@ export const APP_IDS = {
 export const LOOKUP_OPTIONS: Record<string, Record<string, {key: string, label: string}[]>> = {};
 
 export const FIELD_TYPES: Record<string, Record<string, string>> = {
+  'zusammenfassungen': {
+    'interaktion': 'applookup/select',
+    'zeitpunkt': 'date/datetimeminute',
+    'zusammenfassung_text': 'string/textarea',
+    'ki_antwort': 'string/textarea',
+  },
   'veranstaltungen': {
     'titel': 'string/text',
     'datum': 'date/date',
@@ -153,12 +159,6 @@ export const FIELD_TYPES: Record<string, Record<string, string>> = {
     'kuerzel': 'string/text',
     'feedback_text': 'string/textarea',
     'absende_kennung': 'string/text',
-  },
-  'zusammenfassungen': {
-    'interaktion': 'applookup/select',
-    'zeitpunkt': 'date/datetimeminute',
-    'zusammenfassung_text': 'string/textarea',
-    'ki_antwort': 'string/textarea',
   },
   'abschlussbewertungen': {
     'veranstaltung': 'applookup/select',
@@ -181,8 +181,8 @@ type StripLookup<T> = {
 };
 
 // Helper Types for creating new records (lookup fields as plain strings for API)
+export type CreateZusammenfassungen = StripLookup<Zusammenfassungen['fields']>;
 export type CreateVeranstaltungen = StripLookup<Veranstaltungen['fields']>;
 export type CreateInteraktionen = StripLookup<Interaktionen['fields']>;
 export type CreateFeedbacks = StripLookup<Feedbacks['fields']>;
-export type CreateZusammenfassungen = StripLookup<Zusammenfassungen['fields']>;
 export type CreateAbschlussbewertungen = StripLookup<Abschlussbewertungen['fields']>;

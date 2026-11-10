@@ -3,7 +3,7 @@ import { APP_IDS, LOOKUP_OPTIONS, FIELD_TYPES } from '@/types/app';
 import { ensureUploadableImage } from '@/lib/ai';
 import { REST_URL, restFetch } from '@/lib/origin';
 import { reportFailedWrite } from '@/lib/sentry';
-import type { Veranstaltungen, Interaktionen, Feedbacks, Zusammenfassungen, Abschlussbewertungen, CreateVeranstaltungen, CreateInteraktionen, CreateFeedbacks, CreateZusammenfassungen, CreateAbschlussbewertungen } from '@/types/app';
+import type { Zusammenfassungen, Veranstaltungen, Interaktionen, Feedbacks, Abschlussbewertungen, CreateZusammenfassungen, CreateVeranstaltungen, CreateInteraktionen, CreateFeedbacks, CreateAbschlussbewertungen } from '@/types/app';
 
 // Base Configuration — the host is a RUNTIME fact (lib/origin.ts):
 // a bundle copied to another LA instance must talk to THAT instance.
@@ -457,6 +457,44 @@ export async function getAppGroups(): Promise<AppGroupInfo[]> {
 }
 
 export class LivingAppsService {
+  // --- ZUSAMMENFASSUNGEN ---
+  static async getZusammenfassungen(): Promise<Zusammenfassungen[]> {
+    const data = await callApi('GET', `/apps/${APP_IDS.ZUSAMMENFASSUNGEN}/records`);
+    const records = Object.entries(data).map(([id, rec]: [string, any]) => ({
+      record_id: id, ...rec,
+      createdat: rec.created_at ?? '', updatedat: rec.updated_at ?? null,
+    })) as Zusammenfassungen[];
+    return hydrateRecords(records, 'zusammenfassungen');
+  }
+  static async queryZusammenfassungen(q: RecordQuery = {}): Promise<Zusammenfassungen[]> {
+    const data = await callApi('GET', `/apps/${APP_IDS.ZUSAMMENFASSUNGEN}/records${recordQueryString(q)}`, undefined, { signal: q.signal, silent: q.silent });
+    const records = Object.entries(data).map(([id, rec]: [string, any]) => ({
+      record_id: id, ...rec,
+      createdat: rec.created_at ?? '', updatedat: rec.updated_at ?? null,
+    })) as Zusammenfassungen[];
+    return hydrateRecords(records, 'zusammenfassungen');
+  }
+  static async countZusammenfassungen(filter?: string, signal?: AbortSignal): Promise<number> {
+    const data = await callApi('GET', `/apps/${APP_IDS.ZUSAMMENFASSUNGEN}/aggregate_records${recordQueryString({ filter })}${filter ? '&' : '?'}value=count()`, undefined, { signal, silent: true });
+    return parseAggregateCount(data);
+  }
+  static async getZusammenfassungenEntry(id: string): Promise<Zusammenfassungen | undefined> {
+    const data = await callApi('GET', `/apps/${APP_IDS.ZUSAMMENFASSUNGEN}/records/${id}`);
+    const record = { record_id: data.id, ...data, createdat: data.created_at ?? '', updatedat: data.updated_at ?? null } as Zusammenfassungen;
+    return hydrateRecords([record], 'zusammenfassungen')[0];
+  }
+  static async createZusammenfassungenEntry(fields: CreateZusammenfassungen): Promise<MutationResult> {
+    const data = await callApi('POST', `/apps/${APP_IDS.ZUSAMMENFASSUNGEN}/records`, { fields: cleanFieldsForApi(fields as any, 'zusammenfassungen') });
+    return { ...data, record_id: data.id };
+  }
+  static async updateZusammenfassungenEntry(id: string, fields: Partial<CreateZusammenfassungen>): Promise<MutationResult> {
+    const data = await callApi('PATCH', `/apps/${APP_IDS.ZUSAMMENFASSUNGEN}/records/${id}`, { fields: cleanFieldsForApi(fields as any, 'zusammenfassungen') });
+    return { ...data, record_id: data.id };
+  }
+  static async deleteZusammenfassungenEntry(id: string) {
+    return callApi('DELETE', `/apps/${APP_IDS.ZUSAMMENFASSUNGEN}/records/${id}`);
+  }
+
   // --- VERANSTALTUNGEN ---
   static async getVeranstaltungen(): Promise<Veranstaltungen[]> {
     const data = await callApi('GET', `/apps/${APP_IDS.VERANSTALTUNGEN}/records`);
@@ -569,44 +607,6 @@ export class LivingAppsService {
   }
   static async deleteFeedback(id: string) {
     return callApi('DELETE', `/apps/${APP_IDS.FEEDBACKS}/records/${id}`);
-  }
-
-  // --- ZUSAMMENFASSUNGEN ---
-  static async getZusammenfassungen(): Promise<Zusammenfassungen[]> {
-    const data = await callApi('GET', `/apps/${APP_IDS.ZUSAMMENFASSUNGEN}/records`);
-    const records = Object.entries(data).map(([id, rec]: [string, any]) => ({
-      record_id: id, ...rec,
-      createdat: rec.created_at ?? '', updatedat: rec.updated_at ?? null,
-    })) as Zusammenfassungen[];
-    return hydrateRecords(records, 'zusammenfassungen');
-  }
-  static async queryZusammenfassungen(q: RecordQuery = {}): Promise<Zusammenfassungen[]> {
-    const data = await callApi('GET', `/apps/${APP_IDS.ZUSAMMENFASSUNGEN}/records${recordQueryString(q)}`, undefined, { signal: q.signal, silent: q.silent });
-    const records = Object.entries(data).map(([id, rec]: [string, any]) => ({
-      record_id: id, ...rec,
-      createdat: rec.created_at ?? '', updatedat: rec.updated_at ?? null,
-    })) as Zusammenfassungen[];
-    return hydrateRecords(records, 'zusammenfassungen');
-  }
-  static async countZusammenfassungen(filter?: string, signal?: AbortSignal): Promise<number> {
-    const data = await callApi('GET', `/apps/${APP_IDS.ZUSAMMENFASSUNGEN}/aggregate_records${recordQueryString({ filter })}${filter ? '&' : '?'}value=count()`, undefined, { signal, silent: true });
-    return parseAggregateCount(data);
-  }
-  static async getZusammenfassungenEntry(id: string): Promise<Zusammenfassungen | undefined> {
-    const data = await callApi('GET', `/apps/${APP_IDS.ZUSAMMENFASSUNGEN}/records/${id}`);
-    const record = { record_id: data.id, ...data, createdat: data.created_at ?? '', updatedat: data.updated_at ?? null } as Zusammenfassungen;
-    return hydrateRecords([record], 'zusammenfassungen')[0];
-  }
-  static async createZusammenfassungenEntry(fields: CreateZusammenfassungen): Promise<MutationResult> {
-    const data = await callApi('POST', `/apps/${APP_IDS.ZUSAMMENFASSUNGEN}/records`, { fields: cleanFieldsForApi(fields as any, 'zusammenfassungen') });
-    return { ...data, record_id: data.id };
-  }
-  static async updateZusammenfassungenEntry(id: string, fields: Partial<CreateZusammenfassungen>): Promise<MutationResult> {
-    const data = await callApi('PATCH', `/apps/${APP_IDS.ZUSAMMENFASSUNGEN}/records/${id}`, { fields: cleanFieldsForApi(fields as any, 'zusammenfassungen') });
-    return { ...data, record_id: data.id };
-  }
-  static async deleteZusammenfassungenEntry(id: string) {
-    return callApi('DELETE', `/apps/${APP_IDS.ZUSAMMENFASSUNGEN}/records/${id}`);
   }
 
   // --- ABSCHLUSSBEWERTUNGEN ---

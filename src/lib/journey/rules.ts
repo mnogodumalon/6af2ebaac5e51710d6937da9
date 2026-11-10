@@ -13,15 +13,15 @@ import { appLabel, fieldLabel, lookupLabel } from '@/i18n';
 import { policyLabel } from './policy';
 import { LOOKUP_OPTIONS } from '@/types/app';
 
-export type EntityKey = 'veranstaltungen' | 'interaktionen' | 'feedbacks' | 'zusammenfassungen' | 'abschlussbewertungen';
+export type EntityKey = 'zusammenfassungen' | 'veranstaltungen' | 'interaktionen' | 'feedbacks' | 'abschlussbewertungen';
 
 /** The text fields of each entity — what a search may run over (generated;
  *  `never` for an entity without text of its own, e.g. a link table). */
 export interface StringFields {
+  "zusammenfassungen": "zusammenfassung_text" | "ki_antwort";
   "veranstaltungen": "titel" | "beschreibung";
   "interaktionen": "frage" | "erlaeuterung" | "vorprompt" | "endprompt";
   "feedbacks": "kuerzel" | "feedback_text" | "absende_kennung";
-  "zusammenfassungen": "zusammenfassung_text" | "ki_antwort";
   "abschlussbewertungen": "kuerzel" | "besonders_toll" | "verbesserung" | "referenzstatement" | "email";
 }
 export type StringFieldKey<E extends EntityKey> = E extends keyof StringFields ? StringFields[E] : never;
@@ -30,10 +30,10 @@ export type StringFieldKey<E extends EntityKey> = E extends keyof StringFields ?
  *  `form.set` on one of these must carry its display name — at compile time
  *  (`StepForm.set`), because the review would otherwise show the id. */
 export interface RecordFields {
+  "zusammenfassungen": "interaktion";
   "veranstaltungen": never;
   "interaktionen": "veranstaltung";
   "feedbacks": "interaktion";
-  "zusammenfassungen": "interaktion";
   "abschlussbewertungen": "veranstaltung";
 }
 export type RecordFieldKey<E extends EntityKey> = E extends keyof RecordFields ? RecordFields[E] : never;
@@ -99,6 +99,13 @@ export type Shape =
   | { kind: 'stock'; field: string };
 
 export const ENTITIES: Record<EntityKey, EntityInfo> = {
+  "zusammenfassungen": {
+    "key": "zusammenfassungen",
+    "appId": "6af2ebaceb6560837157f5f2",
+    "label": "Zusammenfassungen",
+    "pascal": "Zusammenfassungen",
+    "single": "ZusammenfassungenEntry"
+  },
   "veranstaltungen": {
     "key": "veranstaltungen",
     "appId": "6af2ebab6c24ff663152135c",
@@ -120,13 +127,6 @@ export const ENTITIES: Record<EntityKey, EntityInfo> = {
     "pascal": "Feedbacks",
     "single": "Feedback"
   },
-  "zusammenfassungen": {
-    "key": "zusammenfassungen",
-    "appId": "6af2ebaceb6560837157f5f2",
-    "label": "Zusammenfassungen",
-    "pascal": "Zusammenfassungen",
-    "single": "ZusammenfassungenEntry"
-  },
   "abschlussbewertungen": {
     "key": "abschlussbewertungen",
     "appId": "6af2ebac39ef61ecf9c29581",
@@ -137,6 +137,42 @@ export const ENTITIES: Record<EntityKey, EntityInfo> = {
 };
 
 export const FIELD_RULES: Record<EntityKey, Record<string, FieldRule>> = {
+  "zusammenfassungen": {
+    "interaktion": {
+      "key": "interaktion",
+      "fulltype": "applookup/select",
+      "kind": "record",
+      "required": true,
+      "label": "Interaktion",
+      "writable": true,
+      "targetAppId": "6af2ebab9a1a53f7fe8fed6d",
+      "targetEntity": "interaktionen"
+    },
+    "zeitpunkt": {
+      "key": "zeitpunkt",
+      "fulltype": "date/datetimeminute",
+      "kind": "datetime",
+      "required": false,
+      "label": "Zeitpunkt",
+      "writable": true
+    },
+    "zusammenfassung_text": {
+      "key": "zusammenfassung_text",
+      "fulltype": "string/textarea",
+      "kind": "textarea",
+      "required": false,
+      "label": "Zusammenfassung",
+      "writable": true
+    },
+    "ki_antwort": {
+      "key": "ki_antwort",
+      "fulltype": "string/textarea",
+      "kind": "textarea",
+      "required": false,
+      "label": "Antwort der KI",
+      "writable": true
+    }
+  },
   "veranstaltungen": {
     "titel": {
       "key": "titel",
@@ -262,42 +298,6 @@ export const FIELD_RULES: Record<EntityKey, Record<string, FieldRule>> = {
       "maxLength": 4000
     }
   },
-  "zusammenfassungen": {
-    "interaktion": {
-      "key": "interaktion",
-      "fulltype": "applookup/select",
-      "kind": "record",
-      "required": true,
-      "label": "Interaktion",
-      "writable": true,
-      "targetAppId": "6af2ebab9a1a53f7fe8fed6d",
-      "targetEntity": "interaktionen"
-    },
-    "zeitpunkt": {
-      "key": "zeitpunkt",
-      "fulltype": "date/datetimeminute",
-      "kind": "datetime",
-      "required": false,
-      "label": "Zeitpunkt",
-      "writable": true
-    },
-    "zusammenfassung_text": {
-      "key": "zusammenfassung_text",
-      "fulltype": "string/textarea",
-      "kind": "textarea",
-      "required": false,
-      "label": "Zusammenfassung",
-      "writable": true
-    },
-    "ki_antwort": {
-      "key": "ki_antwort",
-      "fulltype": "string/textarea",
-      "kind": "textarea",
-      "required": false,
-      "label": "Antwort der KI",
-      "writable": true
-    }
-  },
   "abschlussbewertungen": {
     "veranstaltung": {
       "key": "veranstaltung",
@@ -363,6 +363,13 @@ export const FIELD_RULES: Record<EntityKey, Record<string, FieldRule>> = {
 };
 
 export const SHAPES: Record<EntityKey, Shape[]> = {
+  "zusammenfassungen": [
+    {
+      "kind": "record",
+      "field": "interaktion",
+      "targetEntity": "interaktionen"
+    }
+  ],
   "veranstaltungen": [],
   "interaktionen": [
     {
@@ -372,13 +379,6 @@ export const SHAPES: Record<EntityKey, Shape[]> = {
     }
   ],
   "feedbacks": [
-    {
-      "kind": "record",
-      "field": "interaktion",
-      "targetEntity": "interaktionen"
-    }
-  ],
-  "zusammenfassungen": [
     {
       "kind": "record",
       "field": "interaktion",
@@ -399,6 +399,9 @@ export const SHAPES: Record<EntityKey, Shape[]> = {
  *  enrichment makes for `<key>Name`. `useRecordSearch` resolves an applookup to
  *  this name (`ctx.ref('gast')` in `toItem`). */
 export const DISPLAY_FIELDS: Record<EntityKey, string[]> = {
+  "zusammenfassungen": [
+    "zusammenfassung_text"
+  ],
   "veranstaltungen": [
     "titel"
   ],
@@ -407,9 +410,6 @@ export const DISPLAY_FIELDS: Record<EntityKey, string[]> = {
   ],
   "feedbacks": [
     "kuerzel"
-  ],
-  "zusammenfassungen": [
-    "zusammenfassung_text"
   ],
   "abschlussbewertungen": [
     "kuerzel"

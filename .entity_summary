@@ -30,7 +30,7 @@ prescribed them cost every lane a gate round (live 07.09.2026 — wrong vSQL
 and a `createRecordUrl` call copied into three flows). A brief carries the
 domain: steps, eligible records, fields as `name![type: keys]`, sentences.
   @/types/app                            entity types, APP_IDS, LOOKUP_OPTIONS
-  @/types/enriched                       EnrichedInteraktionen, EnrichedFeedbacks, EnrichedZusammenfassungen, EnrichedAbschlussbewertungen — the COMPLETE list, no other Enriched* type exists
+  @/types/enriched                       EnrichedZusammenfassungen, EnrichedInteraktionen, EnrichedFeedbacks, EnrichedAbschlussbewertungen — the COMPLETE list, no other Enriched* type exists
   @/lib/enrich                           the enrich functions — exact fields and signatures on the `✚` line of each entity below; every listed map is REQUIRED, and no other enriched field exists
   @/services/livingAppsService           LivingAppsService, createRecordUrl, extractRecordId — dashboard overview only; a flow writes through its plan (create) or `updates: id` (update), never through the service (gate 3z)
   @/hooks/useDashboardData               useDashboardData — DASHBOARD OVERVIEW ONLY: the RAW arrays (one per entity, camelCase), their setters, loading, error, fetchAll. Never in a flow page (gate 3y): a flow reads through the journey layer (useRecordSearch, useOccupancy, x.recordOf) + interaktionenMap, veranstaltungenMap; it carries NO enriched arrays — build those with the `✚` call below
@@ -51,7 +51,15 @@ There is NO `@/config/appIds`, no `@/config/lookupOptions` and no
 `@/lib/urlUtils` — APP_IDS and LOOKUP_OPTIONS come from `@/types/app`,
 createRecordUrl from the service. Note the lowercase `l` in the service path.
 
+- Zusammenfassungen (zusammenfassungen): interaktion!^[applookup/select], zeitpunkt^[date/datetimeminute], zusammenfassung_text^[string/textarea] "Zusammenfassung", ki_antwort^[string/textarea] "Antwort der KI"
+  ≡ 3 records at build time
+  · zeitpunkt: A specific moment in time consisting of year, month, day, hour and minute (or `null`/`None`) The field value will be a string in the format `<YYYY>-<MM>-<DD>T<HH>:<MM>` (or `null`/`None`). For example: `2000-02-29T11:30`. For `POST`/`PUT`/`PATCH` requests the REST API uses a liberal parsing approach so that strings like `2026`, `February 29, 2000 12:34 MEST`, `letztes Jahr` etc. will be accepted as value datetime values. However this runs the risk of parsing ambiguous values incorrectly. To ensure reliable parsing it is best to use the canonical format specified above.
+  ◈ interaktion → record (interaktionen, EntitySelectStep)
+  ⚙ getZusammenfassungen() · getZusammenfassungenEntry(id) · createZusammenfassungenEntry(fields) · updateZusammenfassungenEntry(id, fields) · deleteZusammenfassungenEntry(id) · queryZusammenfassungen({ filter, orderby, limit, offset, fields }) · countZusammenfassungen(filter?)
+  ✚ EnrichedZusammenfassungen adds ONLY interaktionName — via enrichZusammenfassungen(zusammenfassungen, { interaktionenMap }), all maps required
+  → interaktion links to app_id 6af2ebab9a1a53f7fe8fed6d
 - Veranstaltungen (veranstaltungen): titel!^[string/text] "Titel der Veranstaltung", datum^[date/date], beschreibung^[string/textarea]
+  ≡ 1 records at build time
   ⚙ getVeranstaltungen() · getVeranstaltungenEntry(id) · createVeranstaltungenEntry(fields) · updateVeranstaltungenEntry(id, fields) · deleteVeranstaltungenEntry(id) · queryVeranstaltungen({ filter, orderby, limit, offset, fields }) · countVeranstaltungen(filter?)
 - Interaktionen (interaktionen): veranstaltung!^[applookup/select], reihenfolge!^[number], frage!^[string/textarea], erlaeuterung^[string/textarea], vorprompt^[string/textarea], endprompt[string/textarea], aktiv[bool]
   ≡ 5 records at build time
@@ -60,19 +68,11 @@ createRecordUrl from the service. Note the lowercase `l` in the service path.
   ✚ EnrichedInteraktionen adds ONLY veranstaltungName — via enrichInteraktionen(interaktionen, { veranstaltungenMap }), all maps required
   → veranstaltung links to app_id 6af2ebab6c24ff663152135c
 - Feedbacks (feedbacks): interaktion!^[applookup/select], kuerzel!^[string/text], feedback_text!^[string/textarea] "Dein Feedback", absende_kennung^[string/text]
-  ≡ 7 records at build time
   ◈ interaktion → record (interaktionen, EntitySelectStep)
   ⚙ getFeedbacks() · getFeedback(id) · createFeedback(fields) · updateFeedback(id, fields) · deleteFeedback(id) · queryFeedbacks({ filter, orderby, limit, offset, fields }) · countFeedbacks(filter?)
   ✚ EnrichedFeedbacks adds ONLY interaktionName — via enrichFeedbacks(feedbacks, { interaktionenMap }), all maps required
   → interaktion links to app_id 6af2ebab9a1a53f7fe8fed6d
-- Zusammenfassungen (zusammenfassungen): interaktion!^[applookup/select], zeitpunkt^[date/datetimeminute], zusammenfassung_text^[string/textarea] "Zusammenfassung", ki_antwort^[string/textarea] "Antwort der KI"
-  · zeitpunkt: A specific moment in time consisting of year, month, day, hour and minute (or `null`/`None`) The field value will be a string in the format `<YYYY>-<MM>-<DD>T<HH>:<MM>` (or `null`/`None`). For example: `2000-02-29T11:30`. For `POST`/`PUT`/`PATCH` requests the REST API uses a liberal parsing approach so that strings like `2026`, `February 29, 2000 12:34 MEST`, `letztes Jahr` etc. will be accepted as value datetime values. However this runs the risk of parsing ambiguous values incorrectly. To ensure reliable parsing it is best to use the canonical format specified above.
-  ◈ interaktion → record (interaktionen, EntitySelectStep)
-  ⚙ getZusammenfassungen() · getZusammenfassungenEntry(id) · createZusammenfassungenEntry(fields) · updateZusammenfassungenEntry(id, fields) · deleteZusammenfassungenEntry(id) · queryZusammenfassungen({ filter, orderby, limit, offset, fields }) · countZusammenfassungen(filter?)
-  ✚ EnrichedZusammenfassungen adds ONLY interaktionName — via enrichZusammenfassungen(zusammenfassungen, { interaktionenMap }), all maps required
-  → interaktion links to app_id 6af2ebab9a1a53f7fe8fed6d
 - Abschlussbewertungen (abschlussbewertungen): veranstaltung!^[applookup/select], kuerzel!^[string/text], besonders_toll^[string/textarea] "Was war besonders toll?", verbesserung^[string/textarea] "Was kann verbessert werden?", referenzstatement^[string/textarea], email[string/email] "E-Mail-Adresse (freiwillig)", einwilligung[bool] "Ich willige ein, dass meine E-Mail-Adresse für eine persönliche Auswertung gespeichert wird"
-  ≡ 2 records at build time
   ◈ veranstaltung → record (veranstaltungen, EntitySelectStep)
   ⚙ getAbschlussbewertungen() · getAbschlussbewertungenEntry(id) · createAbschlussbewertungenEntry(fields) · updateAbschlussbewertungenEntry(id, fields) · deleteAbschlussbewertungenEntry(id) · queryAbschlussbewertungen({ filter, orderby, limit, offset, fields }) · countAbschlussbewertungen(filter?)
   ✚ EnrichedAbschlussbewertungen adds ONLY veranstaltungName — via enrichAbschlussbewertungen(abschlussbewertungen, { veranstaltungenMap }), all maps required

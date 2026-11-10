@@ -368,7 +368,7 @@ if (gridIdx >= 0) {
 // useEntityCrud() — legacy pages (preserved pre-EntityCrud overviews the
 // update flow keeps verbatim) are exempt by construction.
 {
-  const ENTITY_DIALOG_PASCALS = ["Veranstaltungen", "Interaktionen", "Feedbacks", "Zusammenfassungen", "Abschlussbewertungen"];
+  const ENTITY_DIALOG_PASCALS = ["Zusammenfassungen", "Veranstaltungen", "Interaktionen", "Feedbacks", "Abschlussbewertungen"];
   if (usesEntityCrud) {
     if (!/import\s*\{[^}]*\buseEntityCrud\b[^}]*\}\s*from\s*'@\/components\/EntityCrud'/.test(code)) {
       errors.push("useEntityCrud() called but not imported from '@/components/EntityCrud' — keep the pre-generated import.");
@@ -415,7 +415,7 @@ if (gridIdx >= 0) {
 // owner's prompt asked for). The page opens the flow for the record:
 // flowActionFor(entity, field, id, value) from '@/config/plan'.
 {
-  const OWNED = {"updateZusammenfassungenEntry": {"entity": "zusammenfassungen", "fields": {"ki_antwort": [{"slug": "ki-antwort-eintragen"}]}}};
+  const OWNED = {};
   const callRe = /\b(update\w+Entry)\s*\(/g;
   let m;
   const hits = [];
@@ -447,7 +447,7 @@ if (gridIdx >= 0) {
 // says „not available“ (Abnahme 5, 04.11.2026: the moderation board's move to
 // FREIGEGEBEN never reached the built flow).
 {
-  const OWNED = {"updateZusammenfassungenEntry": {"entity": "zusammenfassungen", "fields": {"ki_antwort": [{"slug": "ki-antwort-eintragen"}]}}};
+  const OWNED = {};
   const owned = new Set();
   for (const own of Object.values(OWNED)) for (const f of Object.keys(own.fields)) owned.add(`${own.entity}.${f}`);
   const dead = [];
@@ -472,7 +472,7 @@ if (gridIdx >= 0) {
 // src/components/overview, and a payload kept in a variable
 // (`const patch = { status: 'x' }; updateXEntry(id, patch)`) is read too.
 {
-  const ALLOWED = {"updateZusammenfassungenEntry": {"entity": "zusammenfassungen", "fields": ["zusammenfassung_text"], "how": "inline", "rules": ["zusammenfassung_text wird in der Ansicht „Zusammenfassung“ direkt bearbeitet und beim Tippen gespeichert"]}, "updateInteraktionenEntry": {"entity": "interaktionen", "fields": ["aktiv"], "how": "button", "rules": ["aktiv markiert genau den Datensatz, den die Ansicht „QR-Code Feedback“ zeigt (Wert true); beim Markieren eines anderen wird der alte frei"]}};
+  const ALLOWED = null;
   const callRe = /\b((?:update|create|delete)\w+Entry)\s*\(/g;
   const walk = (dir) => {
     let out = [];
@@ -691,7 +691,7 @@ if (gridIdx >= 0) {
 // published page by its link_param. An error when the plan has such a page,
 // a warning otherwise (a QR of some other link may be meant).
 {
-  const LINK_ENTITIES = ["veranstaltungen"];
+  const LINK_ENTITIES = [];
   const walkQr = (dir) => {
     let out = [];
     if (!existsSync(dir)) return out;
@@ -747,7 +747,7 @@ if (gridIdx >= 0) {
 
 // 33. Every link to a view for ONE record carries ?record= (EF-30) — or goes through viewHref(route, id).
 {
-  const RECORD_VIEW_PATHS = Object.values({"src/pages/views/QrCodeView.tsx": "ansicht/qr-code", "src/pages/views/ZusammenfassungView.tsx": "ansicht/zusammenfassung"});
+  const RECORD_VIEW_PATHS = Object.values({});
   if (RECORD_VIEW_PATHS.length) {
     const walk33 = (dir) => {
       let out = [];
@@ -810,10 +810,10 @@ if (gridIdx >= 0) {
 // showed „Pause“ for good, because nothing read the hook's `error`.
 {
   const VIEWS = 'src/pages/views';
-  const VIEW_EDITS = {"src/pages/views/ZusammenfassungView.tsx": ["zusammenfassung_text"]};
-  const VIEW_QR = new Set(["src/pages/views/QrCodeView.tsx"]);
-  const VIEW_COMPOSE = {"src/pages/views/ZusammenfassungView.tsx": "ansicht/zusammenfassung"};
-  const RECORD_VIEWS = {"src/pages/views/QrCodeView.tsx": "ansicht/qr-code", "src/pages/views/ZusammenfassungView.tsx": "ansicht/zusammenfassung"};
+  const VIEW_EDITS = {};
+  const VIEW_QR = new Set([]);
+  const VIEW_COMPOSE = {};
+  const RECORD_VIEWS = {};
   const walkViews = (dir) => {
     let out = [];
     if (!existsSync(dir)) return out;

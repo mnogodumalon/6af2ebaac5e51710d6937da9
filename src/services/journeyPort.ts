@@ -18,43 +18,43 @@ type RawRecord = { record_id: string; fields: Record<string, unknown>; createdat
 type RawMutation = { record_id: string; fields?: Record<string, unknown>; created_at?: string | null };
 
 const listers: Record<EntityKey, () => Promise<RawRecord[]>> = {
+  'zusammenfassungen': () => LivingAppsService.getZusammenfassungen() as Promise<RawRecord[]>,
   'veranstaltungen': () => LivingAppsService.getVeranstaltungen() as Promise<RawRecord[]>,
   'interaktionen': () => LivingAppsService.getInteraktionen() as Promise<RawRecord[]>,
   'feedbacks': () => LivingAppsService.getFeedbacks() as Promise<RawRecord[]>,
-  'zusammenfassungen': () => LivingAppsService.getZusammenfassungen() as Promise<RawRecord[]>,
   'abschlussbewertungen': () => LivingAppsService.getAbschlussbewertungen() as Promise<RawRecord[]>,
 };
 
 /** The query/count half — the REST parameters the plain listers never send. */
 const queriers: Record<EntityKey, (q: RecordQuery) => Promise<RawRecord[]>> = {
+  'zusammenfassungen': q => LivingAppsService.queryZusammenfassungen(q) as Promise<RawRecord[]>,
   'veranstaltungen': q => LivingAppsService.queryVeranstaltungen(q) as Promise<RawRecord[]>,
   'interaktionen': q => LivingAppsService.queryInteraktionen(q) as Promise<RawRecord[]>,
   'feedbacks': q => LivingAppsService.queryFeedbacks(q) as Promise<RawRecord[]>,
-  'zusammenfassungen': q => LivingAppsService.queryZusammenfassungen(q) as Promise<RawRecord[]>,
   'abschlussbewertungen': q => LivingAppsService.queryAbschlussbewertungen(q) as Promise<RawRecord[]>,
 };
 
 const counters: Record<EntityKey, (filter?: string, signal?: AbortSignal) => Promise<number>> = {
+  'zusammenfassungen': (filter, signal) => LivingAppsService.countZusammenfassungen(filter, signal),
   'veranstaltungen': (filter, signal) => LivingAppsService.countVeranstaltungen(filter, signal),
   'interaktionen': (filter, signal) => LivingAppsService.countInteraktionen(filter, signal),
   'feedbacks': (filter, signal) => LivingAppsService.countFeedbacks(filter, signal),
-  'zusammenfassungen': (filter, signal) => LivingAppsService.countZusammenfassungen(filter, signal),
   'abschlussbewertungen': (filter, signal) => LivingAppsService.countAbschlussbewertungen(filter, signal),
 };
 
 const creators: Record<EntityKey, (fields: Record<string, unknown>) => Promise<RawMutation>> = {
+  'zusammenfassungen': fields => LivingAppsService.createZusammenfassungenEntry(fields as never),
   'veranstaltungen': fields => LivingAppsService.createVeranstaltungenEntry(fields as never),
   'interaktionen': fields => LivingAppsService.createInteraktionenEntry(fields as never),
   'feedbacks': fields => LivingAppsService.createFeedback(fields as never),
-  'zusammenfassungen': fields => LivingAppsService.createZusammenfassungenEntry(fields as never),
   'abschlussbewertungen': fields => LivingAppsService.createAbschlussbewertungenEntry(fields as never),
 };
 
 const updaters: Record<EntityKey, (id: string, fields: Record<string, unknown>) => Promise<RawMutation>> = {
+  'zusammenfassungen': (id, fields) => LivingAppsService.updateZusammenfassungenEntry(id, fields as never),
   'veranstaltungen': (id, fields) => LivingAppsService.updateVeranstaltungenEntry(id, fields as never),
   'interaktionen': (id, fields) => LivingAppsService.updateInteraktionenEntry(id, fields as never),
   'feedbacks': (id, fields) => LivingAppsService.updateFeedback(id, fields as never),
-  'zusammenfassungen': (id, fields) => LivingAppsService.updateZusammenfassungenEntry(id, fields as never),
   'abschlussbewertungen': (id, fields) => LivingAppsService.updateAbschlussbewertungenEntry(id, fields as never),
 };
 

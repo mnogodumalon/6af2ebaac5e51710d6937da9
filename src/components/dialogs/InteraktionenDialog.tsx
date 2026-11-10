@@ -444,7 +444,7 @@ export function InteraktionenDialog({ open, onClose, onSubmit, defaultValues, re
   // Fields this dialog never shows: the config's `hidden` and the fields the
   // OVERVIEW changes with its own button (plan.dashboard.writes, how: button —
   // a control, not a form value; S-3). A required field stays visible.
-  const DASHBOARD_BUTTON_FIELDS: string[] = ["aktiv"];
+  const DASHBOARD_BUTTON_FIELDS: string[] = [];
   const ALWAYS_SHOWN: string[] = ['veranstaltung', 'reihenfolge', 'frage'];
   // the values the plan's create flow sets itself (fixed:…): preset on create and
   // not asked — the dialog is the record's door, the flow's rule still holds (S-12)

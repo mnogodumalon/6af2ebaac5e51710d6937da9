@@ -12,10 +12,10 @@
  * a plain date field pair is shown instead.
  *
  * Facts from the metadata — candidates, NOT decisions:
+ *   - zusammenfassungen: applookups interaktion→interaktionen
  *   - veranstaltungen: no date pair, no references
  *   - interaktionen: applookups veranstaltung→veranstaltungen
  *   - feedbacks: applookups interaktion→interaktionen
- *   - zusammenfassungen: applookups interaktion→interaktionen
  *   - abschlussbewertungen: applookups veranstaltung→veranstaltungen
  */
 import type { EntityKey } from '@/lib/journey/rules';

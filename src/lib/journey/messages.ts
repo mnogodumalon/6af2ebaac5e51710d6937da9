@@ -16,10 +16,10 @@
  * bare „Dieses Feld ist erforderlich".
  *
  * Required fields per entity (from the base view):
+ *   - zusammenfassungen: interaktion (Interaktion)
  *   - veranstaltungen: titel (Titel der Veranstaltung)
  *   - interaktionen: veranstaltung (Veranstaltung), reihenfolge (Reihenfolge), frage (Frage)
  *   - feedbacks: interaktion (Interaktion), kuerzel (Kürzel), feedback_text (Dein Feedback)
- *   - zusammenfassungen: interaktion (Interaktion)
  *   - abschlussbewertungen: veranstaltung (Veranstaltung), kuerzel (Kürzel)
  */
 import { t, tx } from '@/i18n';
@@ -27,10 +27,10 @@ import { labelOf, type EntityKey } from './rules';
 
 /** The writable fields of each entity — the keys a message may address (generated). */
 export interface MessageFields {
+  "zusammenfassungen": "interaktion" | "zeitpunkt" | "zusammenfassung_text" | "ki_antwort";
   "veranstaltungen": "titel" | "datum" | "beschreibung";
   "interaktionen": "veranstaltung" | "reihenfolge" | "frage" | "erlaeuterung" | "vorprompt" | "endprompt" | "aktiv";
   "feedbacks": "interaktion" | "kuerzel" | "feedback_text" | "absende_kennung";
-  "zusammenfassungen": "interaktion" | "zeitpunkt" | "zusammenfassung_text" | "ki_antwort";
   "abschlussbewertungen": "veranstaltung" | "kuerzel" | "besonders_toll" | "verbesserung" | "referenzstatement" | "email" | "einwilligung";
 }
 export type MessageFieldKey<E extends EntityKey> = E extends keyof MessageFields ? MessageFields[E] : never;

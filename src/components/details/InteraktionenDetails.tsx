@@ -1,4 +1,4 @@
-import type { Interaktionen, Veranstaltungen, Feedbacks, Zusammenfassungen } from '@/types/app';
+import type { Interaktionen, Veranstaltungen, Zusammenfassungen, Feedbacks } from '@/types/app';
 import { APP_IDS } from '@/types/app';
 import { extractRecordId } from '@/services/livingAppsService';
 import {
@@ -15,30 +15,30 @@ export interface InteraktionenDetailsProps {
   veranstaltungenList: Veranstaltungen[];
   /** Klick auf die Veranstaltungen-Relation → overlay.push auf dessen Detail. */
   onOpenVeranstaltungen?: (record: Veranstaltungen) => void;
-  /** 1:N „Feedbacks" (interaktion): VOLLE Liste — der Block filtert auf diesen Record. */
-  feedbacksList: Feedbacks[];
-  /** Zeilen-Klick → overlay.push auf das Feedbacks-Detail (nie der Edit-Dialog). */
-  onOpenFeedbacks: (record: Feedbacks) => void;
-  /** Kontextuelles „+": öffnet den Feedbacks-Dialog mit diesem Record vorgesetzt. */
-  onAddFeedbacks?: () => void;
   /** 1:N „Zusammenfassungen" (interaktion): VOLLE Liste — der Block filtert auf diesen Record. */
   zusammenfassungenList: Zusammenfassungen[];
   /** Zeilen-Klick → overlay.push auf das Zusammenfassungen-Detail (nie der Edit-Dialog). */
   onOpenZusammenfassungen: (record: Zusammenfassungen) => void;
   /** Kontextuelles „+": öffnet den Zusammenfassungen-Dialog mit diesem Record vorgesetzt. */
   onAddZusammenfassungen?: () => void;
+  /** 1:N „Feedbacks" (interaktion): VOLLE Liste — der Block filtert auf diesen Record. */
+  feedbacksList: Feedbacks[];
+  /** Zeilen-Klick → overlay.push auf das Feedbacks-Detail (nie der Edit-Dialog). */
+  onOpenFeedbacks: (record: Feedbacks) => void;
+  /** Kontextuelles „+": öffnet den Feedbacks-Dialog mit diesem Record vorgesetzt. */
+  onAddFeedbacks?: () => void;
 }
 
 export function InteraktionenDetails({
   record,
   veranstaltungenList,
   onOpenVeranstaltungen,
-  feedbacksList,
-  onOpenFeedbacks,
-  onAddFeedbacks,
   zusammenfassungenList,
   onOpenZusammenfassungen,
   onAddZusammenfassungen,
+  feedbacksList,
+  onOpenFeedbacks,
+  onAddFeedbacks,
 }: InteraktionenDetailsProps) {
   // attachments are a write to this record — read-only without the platform right
   const perms = usePermissions();
@@ -65,20 +65,20 @@ export function InteraktionenDetails({
       </RecordSection>
 
       <SatelliteSection
-        title={appLabel('feedbacks')}
-        items={feedbacksList.filter(r => extractRecordId(r.fields.interaktion) === record.record_id)}
-        map={r => ({ name: r.fields.kuerzel ?? appLabel('feedbacks'), meta: undefined })}
-        onOpen={onOpenFeedbacks}
-        onAdd={onAddFeedbacks}
-        getKey={r => r.record_id}
-      />
-
-      <SatelliteSection
         title={appLabel('zusammenfassungen')}
         items={zusammenfassungenList.filter(r => extractRecordId(r.fields.interaktion) === record.record_id)}
         map={r => ({ name: appLabel('zusammenfassungen'), meta: r.fields.zeitpunkt })}
         onOpen={onOpenZusammenfassungen}
         onAdd={onAddZusammenfassungen}
+        getKey={r => r.record_id}
+      />
+
+      <SatelliteSection
+        title={appLabel('feedbacks')}
+        items={feedbacksList.filter(r => extractRecordId(r.fields.interaktion) === record.record_id)}
+        map={r => ({ name: r.fields.kuerzel ?? appLabel('feedbacks'), meta: undefined })}
+        onOpen={onOpenFeedbacks}
+        onAdd={onAddFeedbacks}
         getKey={r => r.record_id}
       />
 
